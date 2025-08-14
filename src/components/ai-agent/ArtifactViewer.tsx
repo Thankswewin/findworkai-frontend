@@ -1,0 +1,511 @@
+'use client'
+
+import React, { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Code,
+  Eye,
+  Download,
+  Copy,
+  Maximize2,
+  Minimize2,
+  Smartphone,
+  Monitor,
+  Tablet,
+  Edit,
+  Save,
+  Share2,
+  ExternalLink,
+  Palette,
+  Type,
+  Layout,
+  Sparkles,
+  RefreshCw,
+  Send,
+  Check,
+  X
+} from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Slider } from '@/components/ui/slider'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { GeneratedArtifact } from '@/lib/ai-agent'
+import { Textarea } from '@/components/ui/textarea'
+import toast from 'react-hot-toast'
+
+interface ArtifactViewerProps {
+  artifact: GeneratedArtifact
+  onClose: () => void
+  onSave?: (updatedContent: any) => void
+  onDeploy?: (artifact: GeneratedArtifact) => void
+  apiKey?: string
+}
+
+type ViewMode = 'desktop' | 'tablet' | 'mobile'
+type PreviewMode = 'preview' | 'code' | 'split'
+
+const deviceSizes = {
+  desktop: { width: '100%', height: '100%', label: 'Desktop', icon: Monitor },
+  tablet: { width: '768px', height: '1024px', label: 'Tablet', icon: Tablet },
+  mobile: { width: '375px', height: '667px', label: 'Mobile', icon: Smartphone }
+}
+
+export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: ArtifactViewerProps) {
+  const [viewMode, setViewMode] = useState<ViewMode>('desktop')
+  const [previewMode, setPreviewMode] = useState<PreviewMode>('preview')
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [code, setCode] = useState('')
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedCode, setEditedCode] = useState('')
+  const [zoom, setZoom] = useState(100)
+  const [isCopied, setIsCopied] = useState(false)
+  const [isDeploying, setIsDeploying] = useState(false)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    // Format the content based on artifact type
+    if (artifact.type === 'website' || artifact.type === 'landing-page') {
+      const htmlContent = typeof artifact.content === 'string' 
+        ? artifact.content 
+        : generateHTMLFromObject(artifact.content)
+      setCode(htmlContent)
+      setEditedCode(htmlContent)
+    } else if (artifact.type === 'email') {
+      const emailHTML = generateEmailHTML(artifact.content)
+      setCode(emailHTML)
+      setEditedCode(emailHTML)
+    } else {
+      const formattedContent = typeof artifact.content === 'string'
+        ? artifact.content
+        : JSON.stringify(artifact.content, null, 2)
+      setCode(formattedContent)
+      setEditedCode(formattedContent)
+    }
+  }, [artifact])
+
+  // Update iframe content when code changes
+  useEffect(() => {
+    if (iframeRef.current && (artifact.type === 'website' || artifact.type === 'landing-page' || artifact.type === 'email')) {
+      const doc = iframeRef.current.contentDocument
+      if (doc) {
+        doc.open()
+        doc.write(isEditing ? editedCode : code)
+        doc.close()
+      }
+    }
+  }, [code, editedCode, isEditing, artifact.type])
+
+  const generateHTMLFromObject = (content: any): string => {
+    // If content is already HTML string, return it
+    if (typeof content === 'string' && content.includes('<html')) {
+      return content
+    }
+
+    // Generate a basic HTML template
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${artifact.name}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+                ${content.title || artifact.name}
+            </h1>
+            <p class="text-xl text-gray-600">${content.description || 'AI Generated Content'}</p>
+        </header>
+        
+        <main class="max-w-4xl mx-auto">
+            ${generateContentSections(content)}
+        </main>
+        
+        <footer class="mt-16 text-center text-gray-500">
+            <p>Generated by FindWorkAI Agent</p>
+        </footer>
+    </div>
+</body>
+</html>`
+  }
+
+  const generateContentSections = (content: any): string => {
+    if (typeof content === 'string') {
+      return `<div class="prose max-w-none">${content}</div>`
+    }
+    
+    let sections = ''
+    
+    if (content.sections && Array.isArray(content.sections)) {
+      content.sections.forEach((section: any) => {
+        sections += `
+        <section class="mb-8 p-6 bg-white rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold mb-4">${section.title || ''}</h2>
+            <div class="prose">${section.content || ''}</div>
+        </section>`
+      })
+    } else {
+      sections = `
+      <div class="p-6 bg-white rounded-lg shadow-md">
+        <pre class="whitespace-pre-wrap">${JSON.stringify(content, null, 2)}</pre>
+      </div>`
+    }
+    
+    return sections
+  }
+
+  const generateEmailHTML = (content: any): string => {
+    const emailData = typeof content === 'string' ? { body: content } : content
+    
+    return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Template</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: white; padding: 30px; border: 1px solid #e5e7eb; border-radius: 0 0 10px 10px; }
+        .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>${emailData.subject || 'Professional Email Template'}</h1>
+    </div>
+    <div class="content">
+        ${emailData.body || emailData.content || JSON.stringify(emailData, null, 2)}
+        ${emailData.cta ? `<a href="#" class="button">${emailData.cta}</a>` : ''}
+    </div>
+    <div class="footer">
+        <p>Powered by FindWorkAI</p>
+    </div>
+</body>
+</html>`
+  }
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(isEditing ? editedCode : code)
+      setIsCopied(true)
+      toast.success('Copied to clipboard!')
+      setTimeout(() => setIsCopied(false), 2000)
+    } catch (error) {
+      toast.error('Failed to copy')
+    }
+  }
+
+  const handleDownload = () => {
+    const content = isEditing ? editedCode : code
+    const blob = new Blob([content], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${artifact.name.replace(/\s+/g, '_')}.html`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    toast.success('Downloaded successfully!')
+  }
+
+  const handleSave = () => {
+    setCode(editedCode)
+    setIsEditing(false)
+    if (onSave) {
+      onSave(editedCode)
+    }
+    toast.success('Changes saved!')
+  }
+
+  const handleDeploy = async () => {
+    setIsDeploying(true)
+    try {
+      // Simulate deployment
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      if (onDeploy) {
+        onDeploy({ ...artifact, content: isEditing ? editedCode : code })
+      }
+      
+      toast.success('Deployed successfully! Your site is live.')
+    } catch (error) {
+      toast.error('Deployment failed')
+    } finally {
+      setIsDeploying(false)
+    }
+  }
+
+  const renderPreview = () => {
+    if (artifact.type === 'website' || artifact.type === 'landing-page' || artifact.type === 'email') {
+      return (
+        <div className="relative w-full h-full bg-gray-100 rounded-lg overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 bg-white border-b px-4 py-2 flex items-center gap-2">
+            <div className="flex gap-1">
+              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            </div>
+            <div className="flex-1 bg-gray-100 rounded px-3 py-1 text-xs text-gray-600">
+              {artifact.name}.html
+            </div>
+          </div>
+          
+          <div 
+            className="pt-10 h-full flex items-center justify-center overflow-auto"
+            style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top center' }}
+          >
+            <div 
+              className="bg-white shadow-2xl transition-all duration-300"
+              style={{
+                width: deviceSizes[viewMode].width,
+                height: viewMode === 'desktop' ? '100%' : deviceSizes[viewMode].height,
+                maxWidth: '100%'
+              }}
+            >
+              <iframe
+                ref={iframeRef}
+                className="w-full h-full border-0"
+                title="Preview"
+                sandbox="allow-scripts allow-same-origin"
+              />
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // For non-HTML artifacts, show formatted content
+    return (
+      <ScrollArea className="h-full">
+        <div className="p-6">
+          <pre className="whitespace-pre-wrap text-sm">
+            {typeof artifact.content === 'string' 
+              ? artifact.content 
+              : JSON.stringify(artifact.content, null, 2)}
+          </pre>
+        </div>
+      </ScrollArea>
+    )
+  }
+
+  const renderCodeEditor = () => (
+    <div className="h-full flex flex-col">
+      <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center gap-2">
+          <Code className="w-4 h-4" />
+          <span className="font-medium">Code Editor</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {isEditing ? (
+            <>
+              <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>
+                <X className="w-4 h-4 mr-1" />
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleSave}>
+                <Save className="w-4 h-4 mr-1" />
+                Save
+              </Button>
+            </>
+          ) : (
+            <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
+              <Edit className="w-4 h-4 mr-1" />
+              Edit
+            </Button>
+          )}
+        </div>
+      </div>
+      
+      <ScrollArea className="flex-1">
+        {isEditing ? (
+          <Textarea
+            value={editedCode}
+            onChange={(e) => setEditedCode(e.target.value)}
+            className="min-h-[600px] font-mono text-sm p-4 border-0 focus:ring-0"
+            spellCheck={false}
+          />
+        ) : (
+          <pre className="p-4 text-sm font-mono">
+            <code>{code}</code>
+          </pre>
+        )}
+      </ScrollArea>
+    </div>
+  )
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className={`${isFullscreen ? 'max-w-full h-screen m-0' : 'max-w-7xl max-h-[90vh]'} p-0 overflow-hidden`}>
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b">
+            <div>
+              <h3 className="text-lg font-semibold">{artifact.name}</h3>
+              <p className="text-sm text-gray-500">
+                {artifact.type.charAt(0).toUpperCase() + artifact.type.slice(1).replace('-', ' ')}
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {/* Device Preview Buttons */}
+              {(artifact.type === 'website' || artifact.type === 'landing-page') && previewMode !== 'code' && (
+                <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                  {Object.entries(deviceSizes).map(([mode, config]) => {
+                    const Icon = config.icon
+                    return (
+                      <Button
+                        key={mode}
+                        size="sm"
+                        variant={viewMode === mode ? 'default' : 'ghost'}
+                        onClick={() => setViewMode(mode as ViewMode)}
+                        className="px-2"
+                      >
+                        <Icon className="w-4 h-4" />
+                      </Button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Zoom Control */}
+              {previewMode === 'preview' && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">Zoom:</span>
+                  <Slider
+                    value={[zoom]}
+                    onValueChange={([value]) => setZoom(value)}
+                    min={50}
+                    max={150}
+                    step={10}
+                    className="w-24"
+                  />
+                  <span className="text-sm font-medium w-12">{zoom}%</span>
+                </div>
+              )}
+
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                <Button
+                  size="sm"
+                  variant={previewMode === 'preview' ? 'default' : 'ghost'}
+                  onClick={() => setPreviewMode('preview')}
+                >
+                  <Eye className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant={previewMode === 'code' ? 'default' : 'ghost'}
+                  onClick={() => setPreviewMode('code')}
+                >
+                  <Code className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant={previewMode === 'split' ? 'default' : 'ghost'}
+                  onClick={() => setPreviewMode('split')}
+                >
+                  <Layout className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 ml-2 pl-2 border-l">
+                <Button size="sm" variant="outline" onClick={handleCopy}>
+                  {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleDownload}>
+                  <Download className="w-4 h-4" />
+                </Button>
+                {(artifact.type === 'website' || artifact.type === 'landing-page') && (
+                  <Button 
+                    size="sm" 
+                    onClick={handleDeploy}
+                    disabled={isDeploying}
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                  >
+                    {isDeploying ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                        Deploying...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-1" />
+                        Deploy
+                      </>
+                    )}
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsFullscreen(!isFullscreen)}
+                >
+                  {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                </Button>
+                <Button size="sm" variant="outline" onClick={onClose}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Content Area */}
+          <div className="flex-1 overflow-hidden">
+            {previewMode === 'split' ? (
+              <div className="grid grid-cols-2 h-full">
+                <div className="border-r h-full overflow-hidden">
+                  {renderPreview()}
+                </div>
+                <div className="h-full overflow-hidden">
+                  {renderCodeEditor()}
+                </div>
+              </div>
+            ) : previewMode === 'code' ? (
+              renderCodeEditor()
+            ) : (
+              renderPreview()
+            )}
+          </div>
+
+          {/* Footer Status Bar */}
+          <div className="flex items-center justify-between px-4 py-2 border-t bg-gray-50 text-sm">
+            <div className="flex items-center gap-4">
+              <Badge variant="outline">
+                {artifact.metadata?.framework || 'HTML/CSS'}
+              </Badge>
+              {artifact.metadata?.responsive && (
+                <Badge variant="outline" className="text-green-600">
+                  Responsive
+                </Badge>
+              )}
+              {artifact.metadata?.seoOptimized && (
+                <Badge variant="outline" className="text-blue-600">
+                  SEO Optimized
+                </Badge>
+              )}
+            </div>
+            <div className="text-gray-500">
+              Generated by AI Agent • {new Date().toLocaleString()}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
