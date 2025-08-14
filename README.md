@@ -1,11 +1,14 @@
-# SmartLeads AI - AI-Powered Lead Generation Platform 🚀
+# FindWorkAI - AI-Powered Business Discovery Platform 🚀
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.0.4-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3.3-blue)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.3.6-06B6D4)](https://tailwindcss.com/)
+[![Developer](https://img.shields.io/badge/Developer-Pheelymon-purple)](https://www.instagram.com/pheelymon.oftan)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-A modern, production-ready lead generation platform built with Next.js 14, TypeScript, and AI integration. Discover real businesses, analyze opportunities, and generate leads with AI-powered insights.
+**FindWorkAI** - A modern, production-ready lead generation and business discovery platform built with Next.js 14, TypeScript, and AI integration. Created by **[Pheelymon](https://www.instagram.com/pheelymon.oftan)**.
+
+Discover real businesses, analyze opportunities, and generate leads with AI-powered insights.
 
 ## ✨ Features
 
@@ -55,8 +58,8 @@ A modern, production-ready lead generation platform built with Next.js 14, TypeS
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/smartleads-ai.git
-cd smartleads-ai
+git clone https://github.com/Thankswewin/findworkai-frontend.git
+cd findworkai-frontend
 ```
 
 2. Install dependencies:
@@ -194,10 +197,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Vercel for hosting and deployment
 - All open-source contributors
 
+## 👨‍💻 Developer
+
+**Pheelymon** - Full Stack Developer & AI Enthusiast
+- Instagram: [@pheelymon.oftan](https://www.instagram.com/pheelymon.oftan)
+- Platform: [FindWorkAI](https://findworkai.com)
+
 ## 📞 Support
 
-For support, email support@smartleads.ai or open an issue on GitHub.
+For support and collaboration:
+- Follow on Instagram: [@pheelymon.oftan](https://www.instagram.com/pheelymon.oftan)
+- Open an issue on GitHub
+- Visit: [FindWorkAI](https://findworkai.com)
 
 ---
 
-Built with ❤️ by the SmartLeads AI Team
+**FindWorkAI** - Built with ❤️ by **Pheelymon**
+
+*Transforming business discovery with AI*

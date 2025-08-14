@@ -183,7 +183,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold">SmartLeads</span>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold">FindWorkAI</span>
+                <span className="text-xs text-muted-foreground">by Pheelymon</span>
+              </div>
             </Link>
             <Button
               variant="ghost"

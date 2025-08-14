@@ -1,7 +1,16 @@
 {
   "name": "findworkai-frontend",
   "version": "1.0.0",
-  "description": "FindWorkAI - AI-Powered Business Discovery & Lead Generation Platform",
+  "description": "FindWorkAI - AI-Powered Business Discovery & Lead Generation Platform by Pheelymon",
+  "author": {
+    "name": "Pheelymon",
+    "url": "https://www.instagram.com/pheelymon.oftan"
+  },
+  "homepage": "https://findworkai.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Thankswewin/findworkai-frontend"
+  },
   "private": true,
   "scripts": {
     "dev": "next dev",

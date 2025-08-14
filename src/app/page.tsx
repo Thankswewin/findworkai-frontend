@@ -4,8 +4,9 @@ import { authOptions } from '@/lib/auth'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'SmartLeads AI - Home',
-  description: 'AI-Powered Lead Generation Platform',
+  title: 'FindWorkAI - Discover Business Opportunities with AI',
+  description: 'AI-Powered Business Discovery Platform by Pheelymon. Transform your lead generation with intelligent automation.',
+  keywords: 'FindWorkAI, business discovery, AI leads, Pheelymon',
 }
 
 // Server Component - runs on server, better performance
