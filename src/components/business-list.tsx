@@ -1,9 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { Star, Globe, AlertTriangle, TrendingUp, Mail } from 'lucide-react'
+import { Star, Globe, AlertTriangle, TrendingUp, Mail, Download, FileSpreadsheet } from 'lucide-react'
 import { useBusinessStore } from '@/store/business-store'
 import { AnalysisModal } from './analysis-modal'
+import { Button } from './ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
+import toast from 'react-hot-toast'
 
 interface Business {
   id: string
@@ -101,8 +109,91 @@ export function BusinessList({ businesses }: BusinessListProps) {
     }
   }
 
+  const handleExport = (format: 'csv' | 'json' | 'excel') => {
+    try {
+      if (format === 'csv') {
+        const csv = convertToCSV(businesses)
+        downloadFile(csv, 'businesses.csv', 'text/csv')
+      } else if (format === 'json') {
+        const json = JSON.stringify(businesses, null, 2)
+        downloadFile(json, 'businesses.json', 'application/json')
+      } else if (format === 'excel') {
+        // For now, export as CSV for Excel
+        const csv = convertToCSV(businesses)
+        downloadFile(csv, 'businesses.xlsx', 'text/csv')
+      }
+      toast.success(`Exported ${businesses.length} businesses as ${format.toUpperCase()}`)
+    } catch (error) {
+      toast.error('Export failed. Please try again.')
+    }
+  }
+
+  const convertToCSV = (data: Business[]) => {
+    const headers = ['Name', 'Category', 'Location', 'Rating', 'Reviews', 'Has Website', 'Opportunity Score', 'Weaknesses']
+    const rows = data.map(b => [
+      b.name,
+      b.category,
+      b.location,
+      b.rating,
+      b.totalReviews,
+      b.hasWebsite ? 'Yes' : 'No',
+      `${b.opportunityScore}%`,
+      b.weaknesses.join('; ')
+    ])
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+    
+    return csvContent
+  }
+
+  const downloadFile = (content: string, filename: string, type: string) => {
+    const blob = new Blob([content], { type })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+  }
+
   return (
     <>
+      {/* Export Actions Bar */}
+      {businesses.length > 0 && (
+        <div className="flex justify-between items-center p-4 bg-gray-50 border-b">
+          <div className="text-sm text-gray-600">
+            Showing {businesses.length} businesses
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Download className="h-4 w-4" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport('csv')}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('json')}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Export as JSON
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('excel')}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Export as Excel
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
+      
       <div className="divide-y divide-gray-200">
         {businesses.map((business) => (
         <div key={business.id} className="p-6 hover:bg-gray-50 transition-colors">

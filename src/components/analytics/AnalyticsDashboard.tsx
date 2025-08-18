@@ -261,56 +261,58 @@ export default function AnalyticsDashboard() {
               ))}
             </div>
           </div>
-          <Line 
-            data={lineChartData}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  display: false
-                }
-              },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  grid: {
+          <div style={{ height: '300px', width: '100%', position: 'relative' }}>
+            <Line 
+              data={lineChartData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
                     display: false
                   }
                 },
-                x: {
-                  grid: {
-                    display: false
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    grid: {
+                      display: false
+                    }
+                  },
+                  x: {
+                    grid: {
+                      display: false
+                    }
                   }
                 }
-              }
-            }}
-            height={300}
-          />
+              }}
+            />
+          </div>
         </div>
 
         {/* Category Distribution */}
         <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Lead Distribution (Real-time Data)</h3>
-          <Pie 
-            data={pieChartData}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  position: 'bottom',
-                  labels: {
-                    padding: 15,
-                    font: {
-                      size: 11
+          <div style={{ height: '300px', width: '100%', position: 'relative' }}>
+            <Pie 
+              data={pieChartData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'bottom',
+                    labels: {
+                      padding: 15,
+                      font: {
+                        size: 11
+                      }
                     }
                   }
                 }
-              }
-            }}
-            height={300}
-          />
+              }}
+            />
+          </div>
         </div>
       </div>
 

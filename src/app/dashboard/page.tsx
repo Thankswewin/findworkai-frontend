@@ -1,4 +1,4 @@
 'use client'
 
-// Re-export the enhanced dashboard with improved UX
-export { default } from './enhanced-page'
+// Re-export the simplified dashboard with reduced cognitive load
+export { default } from './simplified-page'

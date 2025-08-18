@@ -9,7 +9,7 @@ import { usePathname } from 'next/navigation'
 // Web Vitals types
 export interface WebVitalsMetric {
   id: string
-  name: 'FCP' | 'LCP' | 'CLS' | 'FID' | 'TTFB' | 'INP'
+  name: 'FCP' | 'LCP' | 'CLS' | 'TTFB' | 'INP'
   value: number
   rating: 'good' | 'needs-improvement' | 'poor'
   delta: number
@@ -21,7 +21,6 @@ const THRESHOLDS = {
   FCP: { good: 1800, poor: 3000 },     // First Contentful Paint
   LCP: { good: 2500, poor: 4000 },     // Largest Contentful Paint
   CLS: { good: 0.1, poor: 0.25 },      // Cumulative Layout Shift
-  FID: { good: 100, poor: 300 },       // First Input Delay
   TTFB: { good: 800, poor: 1800 },     // Time to First Byte
   INP: { good: 200, poor: 500 },       // Interaction to Next Paint
 }
@@ -83,9 +82,8 @@ export function usePerformance() {
     if (typeof window === 'undefined') return
 
     // Dynamically import web-vitals to reduce bundle size
-    import('web-vitals').then(({ onCLS, onFID, onFCP, onLCP, onTTFB, onINP }) => {
+    import('web-vitals').then(({ onCLS, onFCP, onLCP, onTTFB, onINP }) => {
       onCLS(logWebVital)
-      onFID(logWebVital)
       onFCP(logWebVital)
       onLCP(logWebVital)
       onTTFB(logWebVital)

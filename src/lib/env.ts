@@ -8,12 +8,13 @@ import { z } from 'zod'
 const envSchema = z.object({
   // Public environment variables (exposed to client)
   NEXT_PUBLIC_API_URL: z.string().url().default('http://localhost:8000/api/v1'),
-  NEXT_PUBLIC_GOOGLE_MAPS_KEY: z.string().min(1, 'Google Maps API key is required'),
+  NEXT_PUBLIC_GOOGLE_MAPS_KEY: z.string().optional(),
   NEXT_PUBLIC_APP_NAME: z.string().default('FindWorkAI'),
   NEXT_PUBLIC_APP_VERSION: z.string().default('1.0.0'),
   
   // Server-only environment variables
-  OPENAI_API_KEY: z.string().min(1, 'OpenAI API key is required').optional(),
+  OPENAI_API_KEY: z.string().min(1, 'OpenAI/OpenRouter API key is required').optional(),
+  NEXT_PUBLIC_OPENROUTER_API_KEY: z.string().optional(),
   NEXTAUTH_SECRET: z.string().min(32, 'NextAuth secret must be at least 32 characters').optional(),
   NEXTAUTH_URL: z.string().url().default('http://localhost:3000'),
   DATABASE_URL: z.string().optional(),
@@ -28,7 +29,8 @@ const parsed = envSchema.safeParse({
   NEXT_PUBLIC_GOOGLE_MAPS_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY,
   NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
   NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
-  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENROUTER_API_KEY,
+  NEXT_PUBLIC_OPENROUTER_API_KEY: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY,
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
   NEXTAUTH_URL: process.env.NEXTAUTH_URL,
   DATABASE_URL: process.env.DATABASE_URL,

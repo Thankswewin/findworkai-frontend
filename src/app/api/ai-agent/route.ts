@@ -3,20 +3,28 @@ import { getAIAgent } from '@/lib/ai-agent'
 import { z } from 'zod'
 import { env } from '@/lib/env'
 import { rateLimit } from '@/lib/rate-limit'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 
 // Input validation schemas
 const aiAgentRequestSchema = z.object({
   action: z.enum(['process', 'getHistory', 'clearHistory']),
   business: z.object({
+    id: z.string(),
     name: z.string().min(1).max(200),
+    category: z.string(),
+    location: z.string(),
+    rating: z.number(),
+    totalReviews: z.number(),
+    hasWebsite: z.boolean(),
     address: z.string().optional(),
     city: z.string().optional(),
     state: z.string().optional(),
     phone: z.string().optional(),
-    website: z.string().url().optional(),
+    website: z.string().optional(),
     email: z.string().email().optional(),
+    opportunityScore: z.number().optional(),
+    photos: z.array(z.string()).optional(),
+    priceLevel: z.number().optional(),
+    openNow: z.boolean().optional(),
   }).optional(),
 })
 
@@ -28,12 +36,6 @@ const limiter = rateLimit({
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication (uncomment when auth is implemented)
-    // const session = await getServerSession(authOptions)
-    // if (!session) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    // }
-
     // Rate limiting
     const identifier = request.ip ?? 'anonymous'
     const { success } = await limiter.check(identifier, 10) // 10 requests per minute

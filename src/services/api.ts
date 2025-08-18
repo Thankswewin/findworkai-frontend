@@ -5,6 +5,7 @@
 
 import axios, { AxiosInstance } from 'axios'
 import toast from 'react-hot-toast'
+import { createClient } from '@/lib/supabase/client'
 
 // API Configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -88,7 +89,7 @@ export interface DashboardMetrics {
 // API Client Class
 class ApiService {
   private client: AxiosInstance
-  private token: string | null = null
+  private supabase = createClient()
 
   constructor() {
     this.client = axios.create({
@@ -98,61 +99,52 @@ class ApiService {
       },
     })
 
-    // Load token from localStorage
-    if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('access_token')
-    }
-
-    // Request interceptor to add token
-    this.client.interceptors.request.use((config) => {
-      if (this.token) {
-        config.headers.Authorization = `Bearer ${this.token}`
+    // Request interceptor to add Supabase token
+    this.client.interceptors.request.use(async (config) => {
+      // Get the current Supabase session
+      const { data: { session } } = await this.supabase.auth.getSession()
+      
+      if (session?.access_token) {
+        config.headers.Authorization = `Bearer ${session.access_token}`
       }
+      
       return config
     })
 
     // Response interceptor for error handling
     this.client.interceptors.response.use(
       (response) => response,
-      (error) => {
+      async (error) => {
         if (error.response?.status === 401) {
-          // Token expired or invalid
-          this.logout()
-          window.location.href = '/login'
+          // Log the error but don't auto-redirect
+          console.error('API 401 Error:', error.response?.data)
+          const message = error.response?.data?.detail || 'Authentication required'
+          toast.error(message)
+          // Don't auto-redirect, let the component handle it
+        } else {
+          const message = error.response?.data?.detail || 'An error occurred'
+          toast.error(message)
         }
-        const message = error.response?.data?.detail || 'An error occurred'
-        toast.error(message)
         return Promise.reject(error)
       }
     )
   }
 
-  // Authentication
+  // Note: Authentication is now handled by Supabase directly
+  // These methods are kept for backward compatibility but not used
   async login(credentials: LoginCredentials) {
-    const formData = new FormData()
-    formData.append('username', credentials.email)
-    formData.append('password', credentials.password)
-    
-    const response = await this.client.post('/auth/login', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-    
-    this.token = response.data.access_token
-    localStorage.setItem('access_token', this.token!)
-    localStorage.setItem('user', JSON.stringify(response.data.user))
-    
-    return response.data
+    // Use Supabase auth instead
+    throw new Error('Use Supabase auth.signInWithPassword instead')
   }
 
   async register(userData: any) {
-    const response = await this.client.post('/auth/register', userData)
-    return response.data
+    // Use Supabase auth instead
+    throw new Error('Use Supabase auth.signUp instead')
   }
 
   logout() {
-    this.token = null
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('user')
+    // Use Supabase auth instead
+    throw new Error('Use Supabase auth.signOut instead')
   }
 
   // Business Management
@@ -162,7 +154,10 @@ class ApiService {
       location,
       radius
     })
-    return response.data
+    // The backend returns an array directly, wrap it for consistency
+    return {
+      businesses: response.data
+    }
   }
 
   async getBusinesses(params?: any) {
@@ -187,6 +182,11 @@ class ApiService {
 
   async getBusinessStats() {
     const response = await this.client.get('/businesses/stats/overview')
+    return response.data
+  }
+
+  async analyzeBusiness(id: string) {
+    const response = await this.client.post(`/businesses/${id}/analyze`)
     return response.data
   }
 
@@ -217,10 +217,6 @@ class ApiService {
   }
 
   // AI Analysis
-  async analyzeBusiness(businessId: string) {
-    const response = await this.client.post(`/analysis/analyze/${businessId}`)
-    return response.data
-  }
 
   async bulkAnalyze(businessIds: string[]) {
     const response = await this.client.post('/analysis/bulk-analyze', {

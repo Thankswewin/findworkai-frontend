@@ -149,15 +149,17 @@ async function executeRequest<T>(
     }
     
     // Add auth token if available
-    if (typeof window !== 'undefined') {
-      // Get token from NextAuth session or other auth mechanism
-      const session = await getSession()
-      if (session?.accessToken) {
+    try {
+      const session = await getSupabaseSession()
+      if (session?.access_token) {
         fetchOptions.headers = {
           ...fetchOptions.headers,
-          'Authorization': `Bearer ${session.accessToken}`,
+          'Authorization': `Bearer ${session.access_token}`,
         }
       }
+    } catch (error) {
+      // Continue without auth if session fetch fails
+      console.warn('Failed to get auth session:', error)
     }
     
     // Execute request with retry logic
@@ -273,17 +275,20 @@ export const apiClient = {
   },
 }
 
-// Import getSession from NextAuth
-async function getSession() {
+// Import getSession from Supabase
+async function getSupabaseSession() {
   if (typeof window === 'undefined') {
     // Server-side
-    const { getServerSession } = await import('next-auth')
-    const { authOptions } = await import('@/lib/auth')
-    return getServerSession(authOptions)
+    const { createClient } = await import('@/lib/supabase/server')
+    const supabase = await createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    return session
   } else {
     // Client-side
-    const { getSession } = await import('next-auth/react')
-    return getSession()
+    const { createBrowserClient } = await import('@/lib/supabase/client')
+    const supabase = createBrowserClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    return session
   }
 }
 

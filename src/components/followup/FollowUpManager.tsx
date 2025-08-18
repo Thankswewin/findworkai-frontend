@@ -5,7 +5,8 @@ import { motion } from 'framer-motion'
 import { 
   Calendar, Clock, CheckCircle, AlertCircle, Send,
   Phone, Mail, MessageSquare, User, ArrowRight,
-  Loader2, Plus, Filter, ChevronRight, Bell, Trophy
+  Loader2, Plus, Filter, ChevronRight, Bell, Trophy,
+  WifiOff, RefreshCw, XCircle
 } from 'lucide-react'
 import apiService from '@/services/api'
 import toast from 'react-hot-toast'
@@ -38,6 +39,8 @@ interface FollowUpStats {
 export default function FollowUpManager() {
   const [followUps, setFollowUps] = useState<FollowUp[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<{ message: string; canRetry: boolean } | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedFollowUp, setSelectedFollowUp] = useState<FollowUp | null>(null)
   const [filterStatus, setFilterStatus] = useState<string>('all')
@@ -48,6 +51,9 @@ export default function FollowUpManager() {
     overdue: 0,
     completion_rate: 0
   })
+  
+  // Check if we're in development mode
+  const isDevelopment = process.env.NODE_ENV === 'development'
 
   const [newFollowUp, setNewFollowUp] = useState({
     lead_id: '',
@@ -61,27 +67,125 @@ export default function FollowUpManager() {
     fetchFollowUps()
   }, [filterStatus])
 
-  const fetchFollowUps = async () => {
+  const fetchFollowUps = async (isRetry = false) => {
     try {
       setLoading(true)
-      const response = await apiService.getPendingFollowUps(30) // Get pending follow-ups for next 30 days
-      // Transform the response to match our expected format
-      setFollowUps(response.followups || [])
-      // Create mock stats since they're not provided by the API
+      setError(null)
+      
+      const response = await apiService.getPendingFollowUps(30)
       const followups = response.followups || []
+      
+      setFollowUps(followups)
       setStats({
         total: followups.length,
         pending: followups.filter((f: any) => f.status === 'pending').length,
         completed: followups.filter((f: any) => f.status === 'completed').length,
         overdue: followups.filter((f: any) => f.status === 'overdue').length,
-        completion_rate: followups.length > 0 ? (followups.filter((f: any) => f.status === 'completed').length / followups.length) * 100 : 0
+        completion_rate: followups.length > 0 
+          ? Math.round((followups.filter((f: any) => f.status === 'completed').length / followups.length) * 100)
+          : 0
       })
-    } catch (error) {
-      toast.error('Failed to fetch follow-ups')
+      
+      // Reset retry count on successful fetch
+      if (isRetry) {
+        setRetryCount(0)
+        toast.success('Follow-ups loaded successfully')
+      }
+    } catch (error: any) {
       console.error('Error fetching follow-ups:', error)
+      
+      const isNetworkError = error.code === 'ERR_NETWORK' || 
+                            error.message?.includes('Network Error') ||
+                            error.response?.status >= 500
+      
+      // In development mode ONLY, show mock data if backend is down
+      if (isDevelopment && isNetworkError) {
+        console.warn('Development mode: Using mock data due to backend error')
+        
+        const mockFollowUps: FollowUp[] = [
+          {
+            id: 'dev-1',
+            lead_id: 'dev_lead_1',
+            lead_name: 'Demo Company (Dev)',
+            type: 'email',
+            status: 'pending',
+            priority: 'high',
+            scheduled_date: new Date(Date.now() + 86400000).toISOString(),
+            notes: 'Development mode: This is sample data',
+            contact_info: { email: 'demo@example.com' }
+          },
+          {
+            id: 'dev-2',
+            lead_id: 'dev_lead_2',
+            lead_name: 'Test Corp (Dev)',
+            type: 'call',
+            status: 'overdue',
+            priority: 'medium',
+            scheduled_date: new Date(Date.now() - 86400000).toISOString(),
+            notes: 'Development mode: Backend is not running',
+            contact_info: { phone: '555-TEST' }
+          }
+        ]
+        
+        setFollowUps(mockFollowUps)
+        setStats({
+          total: 2,
+          pending: 1,
+          completed: 0,
+          overdue: 1,
+          completion_rate: 0
+        })
+        
+        // Show a warning toast in development
+        toast('Development Mode: Showing mock data', {
+          icon: '⚠️',
+          duration: 4000
+        })
+        
+        setError({
+          message: 'Backend server is not available. Showing demo data for development.',
+          canRetry: true
+        })
+      } else {
+        // Production error handling
+        let errorMessage = 'Unable to load follow-ups'
+        let canRetry = true
+        
+        if (isNetworkError) {
+          errorMessage = 'Connection error. Please check your internet connection and try again.'
+        } else if (error.response?.status === 401) {
+          errorMessage = 'You need to sign in to view follow-ups.'
+          canRetry = false
+        } else if (error.response?.status === 403) {
+          errorMessage = 'You don\'t have permission to view follow-ups.'
+          canRetry = false
+        } else if (error.response?.status === 404) {
+          errorMessage = 'Follow-ups service is not available.'
+        }
+        
+        setError({ message: errorMessage, canRetry })
+        setFollowUps([])
+        setStats({
+          total: 0,
+          pending: 0,
+          completed: 0,
+          overdue: 0,
+          completion_rate: 0
+        })
+        
+        // Only show toast for non-retry attempts
+        if (!isRetry) {
+          toast.error(errorMessage)
+        }
+      }
     } finally {
       setLoading(false)
     }
+  }
+  
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1)
+    fetchFollowUps(true)
   }
 
   const createFollowUp = async () => {
@@ -102,8 +206,47 @@ export default function FollowUpManager() {
         priority: 'medium',
         notes: ''
       })
-    } catch (error) {
-      toast.error('Failed to create follow-up')
+    } catch (error: any) {
+      console.error('Error creating follow-up:', error)
+      
+      // Only allow local state updates in development mode
+      if (isDevelopment && (error.code === 'ERR_NETWORK' || error.message?.includes('Network Error'))) {
+        const newFollowUpItem: FollowUp = {
+          id: `dev-${Date.now()}`,
+          lead_id: newFollowUp.lead_id,
+          lead_name: `Lead ${newFollowUp.lead_id} (Dev)`,
+          type: newFollowUp.type,
+          status: 'pending',
+          priority: newFollowUp.priority,
+          scheduled_date: newFollowUp.scheduled_date,
+          notes: newFollowUp.notes,
+          contact_info: {}
+        }
+        setFollowUps(prev => [...prev, newFollowUpItem])
+        setStats(prev => ({
+          ...prev,
+          total: prev.total + 1,
+          pending: prev.pending + 1
+        }))
+        toast('Development: Follow-up created locally', { icon: '⚠️' })
+        setShowCreateModal(false)
+        setNewFollowUp({
+          lead_id: '',
+          type: 'email',
+          scheduled_date: new Date().toISOString().split('T')[0],
+          priority: 'medium',
+          notes: ''
+        })
+      } else {
+        // Production error handling
+        const errorMessage = error.response?.status === 401
+          ? 'Please sign in to create follow-ups'
+          : error.response?.status === 403
+          ? 'You don\'t have permission to create follow-ups'
+          : 'Failed to create follow-up. Please try again.'
+        
+        toast.error(errorMessage)
+      }
     }
   }
 
@@ -112,8 +255,31 @@ export default function FollowUpManager() {
       await apiService.completeFollowUp(id, outcome, '', undefined)
       toast.success('Follow-up marked as completed')
       fetchFollowUps()
-    } catch (error) {
-      toast.error('Failed to complete follow-up')
+    } catch (error: any) {
+      console.error('Error completing follow-up:', error)
+      
+      // Only allow local state updates in development mode
+      if (isDevelopment && (error.code === 'ERR_NETWORK' || error.message?.includes('Network Error'))) {
+        setFollowUps(prev => prev.map(f => 
+          f.id === id ? { ...f, status: 'completed' as const, outcome } : f
+        ))
+        setStats(prev => ({
+          ...prev,
+          pending: Math.max(0, prev.pending - 1),
+          completed: prev.completed + 1,
+          completion_rate: Math.round(((prev.completed + 1) / prev.total) * 100)
+        }))
+        toast('Development: Follow-up completed locally', { icon: '⚠️' })
+      } else {
+        // Production error handling
+        const errorMessage = error.response?.status === 401
+          ? 'Please sign in to complete follow-ups'
+          : error.response?.status === 403
+          ? 'You don\'t have permission to complete this follow-up'
+          : 'Failed to complete follow-up. Please try again.'
+        
+        toast.error(errorMessage)
+      }
     }
   }
 
@@ -271,6 +437,44 @@ export default function FollowUpManager() {
             <div className="p-12 text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600" />
               <p className="mt-2 text-gray-600">Loading follow-ups...</p>
+            </div>
+          ) : error ? (
+            <div className="p-12 text-center">
+              <div className="max-w-md mx-auto">
+                {error.canRetry ? (
+                  <>
+                    <WifiOff className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Connection Error</h3>
+                    <p className="text-gray-600 mb-6">{error.message}</p>
+                    {isDevelopment && (
+                      <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-sm text-yellow-800">
+                          <strong>Development Mode:</strong> Showing mock data. Start your backend server to see real data.
+                        </p>
+                      </div>
+                    )}
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleRetry}
+                      disabled={retryCount >= 3}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      {retryCount >= 3 ? 'Max retries reached' : 'Try Again'}
+                    </motion.button>
+                    {retryCount > 0 && (
+                      <p className="text-sm text-gray-500 mt-2">Retry attempt {retryCount} of 3</p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-12 w-12 mx-auto text-red-400 mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Access Denied</h3>
+                    <p className="text-gray-600">{error.message}</p>
+                  </>
+                )}
+              </div>
             </div>
           ) : followUps.length === 0 ? (
             <div className="p-12 text-center">

@@ -62,7 +62,7 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
   const [code, setCode] = useState('')
   const [isEditing, setIsEditing] = useState(false)
   const [editedCode, setEditedCode] = useState('')
-  const [zoom, setZoom] = useState(100)
+  const [zoom, setZoom] = useState(85) // Start with 85% zoom for better initial fit
   const [isCopied, setIsCopied] = useState(false)
   const [isDeploying, setIsDeploying] = useState(false)
   const iframeRef = useRef<HTMLIFrameElement>(null)
@@ -70,7 +70,7 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
 
   useEffect(() => {
     // Format the content based on artifact type
-    if (artifact.type === 'website' || artifact.type === 'landing-page') {
+    if (artifact.type === 'website' || artifact.type === 'landing-page' || artifact.type === 'marketing' || artifact.type === 'content') {
       const htmlContent = typeof artifact.content === 'string' 
         ? artifact.content 
         : generateHTMLFromObject(artifact.content)
@@ -91,7 +91,7 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
 
   // Update iframe content when code changes
   useEffect(() => {
-    if (iframeRef.current && (artifact.type === 'website' || artifact.type === 'landing-page' || artifact.type === 'email')) {
+    if (iframeRef.current && (artifact.type === 'website' || artifact.type === 'landing-page' || artifact.type === 'email' || artifact.type === 'marketing' || artifact.type === 'content')) {
       const doc = iframeRef.current.contentDocument
       if (doc) {
         doc.open()
@@ -164,6 +164,71 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
     }
     
     return sections
+  }
+
+  const generateContentHTML = (content: any): string => {
+    const contentData = typeof content === 'object' ? content : { content: content }
+    
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Package - ${artifact.name}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold mb-2">Content Package</h1>
+            <p class="text-gray-600">AI-Generated Content for ${artifact.metadata?.businessName || 'Your Business'}</p>
+        </header>
+        
+        ${contentData.businessDescription ? `
+        <section class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-3">Business Description</h2>
+            <p class="text-gray-700">${contentData.businessDescription}</p>
+        </section>` : ''}
+        
+        ${contentData.aboutText ? `
+        <section class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-3">About Us</h2>
+            <p class="text-gray-700">${contentData.aboutText}</p>
+        </section>` : ''}
+        
+        ${contentData.blogTopics ? `
+        <section class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-3">Blog Topic Ideas</h2>
+            <ul class="list-disc list-inside space-y-2">
+                ${contentData.blogTopics.map((topic: string) => `<li class="text-gray-700">${topic}</li>`).join('')}
+            </ul>
+        </section>` : ''}
+        
+        ${contentData.socialMediaPosts ? `
+        <section class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-3">Social Media Posts</h2>
+            <div class="space-y-3">
+                ${contentData.socialMediaPosts.map((post: string) => `
+                <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p class="text-gray-700">${post}</p>
+                </div>`).join('')}
+            </div>
+        </section>` : ''}
+        
+        ${contentData.faqSection ? `
+        <section class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-xl font-semibold mb-3">FAQ Section</h2>
+            <div class="space-y-4">
+                ${Object.entries(contentData.faqSection).map(([q, a]) => `
+                <div>
+                    <h3 class="font-medium text-gray-900 mb-1">Q: ${q}</h3>
+                    <p class="text-gray-700 pl-4">A: ${a}</p>
+                </div>`).join('')}
+            </div>
+        </section>` : ''}
+    </div>
+</body>
+</html>`
   }
 
   const generateEmailHTML = (content: any): string => {
@@ -251,7 +316,7 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
   }
 
   const renderPreview = () => {
-    if (artifact.type === 'website' || artifact.type === 'landing-page' || artifact.type === 'email') {
+    if (artifact.type === 'website' || artifact.type === 'landing-page' || artifact.type === 'email' || artifact.type === 'marketing' || artifact.type === 'content') {
       return (
         <div className="relative w-full h-full bg-gray-100 rounded-lg overflow-hidden">
           <div className="absolute top-0 left-0 right-0 bg-white border-b px-4 py-2 flex items-center gap-2">
@@ -273,8 +338,9 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
               className="bg-white shadow-2xl transition-all duration-300"
               style={{
                 width: deviceSizes[viewMode].width,
-                height: viewMode === 'desktop' ? '100%' : deviceSizes[viewMode].height,
-                maxWidth: '100%'
+                height: viewMode === 'desktop' ? 'calc(100% - 2.5rem)' : deviceSizes[viewMode].height,
+                maxWidth: '100%',
+                minHeight: viewMode === 'desktop' ? '600px' : 'auto'
               }}
             >
               <iframe
@@ -350,7 +416,7 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className={`${isFullscreen ? 'max-w-full h-screen m-0' : 'max-w-7xl max-h-[90vh]'} p-0 overflow-hidden`}>
+      <DialogContent className={`${isFullscreen ? 'max-w-full h-screen m-0' : 'max-w-[90vw] w-[90vw] h-[85vh]'} p-0 overflow-hidden`}>
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">

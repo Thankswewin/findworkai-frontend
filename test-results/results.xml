@@ -1,0 +1,8 @@
+<testsuites id="" name="" tests="1" failures="0" skipped="1" errors="0" time="6.140534">
+<testsuite name="canvas-ai-agent.spec.ts" timestamp="2025-08-16T09:48:01.191Z" hostname="chromium" tests="1" failures="0" skipped="1" time="4.972" errors="0">
+<testcase name="AI Agent Canvas - Website Generation Tests › should test the visual canvas artifact viewer" classname="canvas-ai-agent.spec.ts" time="4.972">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+</testsuites>

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/providers'
@@ -11,6 +11,12 @@ const inter = Inter({
   preload: true,
 })
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
+
 export const metadata: Metadata = {
   title: 'FindWorkAI - AI-Powered Business Discovery Platform',
   description: 'Discover real businesses, analyze opportunities, and generate leads with AI-powered insights',
@@ -18,7 +24,6 @@ export const metadata: Metadata = {
   authors: [{ name: 'Pheelymon', url: 'https://www.instagram.com/pheelymon.oftan' }],
   creator: 'Pheelymon',
   publisher: 'FindWorkAI',
-  viewport: 'width=device-width, initial-scale=1',
   robots: 'index, follow',
   openGraph: {
     title: 'FindWorkAI - AI-Powered Business Discovery Platform',

@@ -184,6 +184,11 @@ export default function EnhancedDashboard() {
     setAnalyzingId(business.id)
     
     try {
+      // Parse location safely
+      const locationParts = business.location ? business.location.split(',') : ['', '']
+      const city = locationParts[0]?.trim() || 'Unknown'
+      const state = locationParts[1]?.trim() || ''
+      
       const response = await fetch(`http://localhost:8000/api/v1/demo/analyze-business`, {
         method: 'POST',
         headers: {
@@ -191,13 +196,13 @@ export default function EnhancedDashboard() {
         },
         body: JSON.stringify({
           name: business.name,
-          business_category: business.category,
-          city: business.location.split(',')[0],
-          state: business.location.split(',')[1]?.trim() || '',
-          rating: business.rating,
-          total_reviews: business.totalReviews,
-          has_website: business.hasWebsite,
-          website: business.website
+          business_category: business.category || 'General',
+          city: city,
+          state: state,
+          rating: business.rating || 0,
+          total_reviews: business.totalReviews || 0,
+          has_website: business.hasWebsite || false,
+          website: business.website || ''
         })
       })
       
@@ -838,20 +843,22 @@ export default function EnhancedDashboard() {
 
       {/* Analysis Results Dialog */}
       <Dialog open={showAnalysisResults} onOpenChange={setShowAnalysisResults}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="sr-only">
+        <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Business Analysis Results</DialogTitle>
             <DialogDescription>Detailed analysis of the selected business</DialogDescription>
           </DialogHeader>
-          {currentAnalysis && (
-            <AnalysisResults
-              business={currentAnalysis.business}
-              analysis={currentAnalysis.analysis}
-              onSave={handleSaveAnalysis}
-              onExport={handleExportAnalysis}
-              onShare={handleShareAnalysis}
-            />
-          )}
+          <div className="flex-1 overflow-y-auto">
+            {currentAnalysis && (
+              <AnalysisResults
+                business={currentAnalysis.business}
+                analysis={currentAnalysis.analysis}
+                onSave={handleSaveAnalysis}
+                onExport={handleExportAnalysis}
+                onShare={handleShareAnalysis}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -908,19 +915,22 @@ export default function EnhancedDashboard() {
 
       {/* AI Agent Builder Dialog */}
       <Dialog open={showAIAgent} onOpenChange={setShowAIAgent}>
-        <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden p-0">
-          <DialogHeader className="sr-only">
+        <DialogContent className="max-w-7xl h-[90vh] flex flex-col p-0">
+          <DialogHeader className="flex-shrink-0 p-6 pb-0">
             <DialogTitle>AI Agent Builder</DialogTitle>
             <DialogDescription>Building AI-powered solutions for your business</DialogDescription>
           </DialogHeader>
-          {selectedBusinessForAgent && (
-            <BusinessAIAgentBuilder
-              business={selectedBusinessForAgent}
-              agentType={aiAgentType}
-              isOpen={showAIAgent}
-              onClose={() => setShowAIAgent(false)}
-            />
-          )}
+          <div className="flex-1 overflow-y-auto p-6 pt-4">
+            {selectedBusinessForAgent && (
+              <BusinessAIAgentBuilder
+                business={selectedBusinessForAgent}
+                agentType={aiAgentType}
+                isOpen={showAIAgent}
+                onClose={() => setShowAIAgent(false)}
+                apiKey="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"
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

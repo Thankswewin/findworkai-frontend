@@ -22,15 +22,25 @@ jest.mock('next/navigation', () => ({
   },
 }))
 
-// Mock Next Auth
-jest.mock('next-auth/react', () => ({
-  useSession: jest.fn(() => ({
-    data: null,
-    status: 'unauthenticated',
+// Mock Supabase
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(() => ({
+    auth: {
+      getSession: jest.fn(() => Promise.resolve({ data: { session: null }, error: null })),
+      signInWithPassword: jest.fn(),
+      signOut: jest.fn(),
+      onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } })),
+    },
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => Promise.resolve({ data: [], error: null })),
+        single: jest.fn(() => Promise.resolve({ data: null, error: null })),
+      })),
+      insert: jest.fn(() => Promise.resolve({ data: null, error: null })),
+      update: jest.fn(() => Promise.resolve({ data: null, error: null })),
+      delete: jest.fn(() => Promise.resolve({ data: null, error: null })),
+    })),
   })),
-  signIn: jest.fn(),
-  signOut: jest.fn(),
-  getSession: jest.fn(),
 }))
 
 // Mock environment variables
@@ -48,8 +58,29 @@ global.IntersectionObserver = class IntersectionObserver {
   }
 }
 
-// Mock fetch
+// Mock fetch and Response for Node.js environment
 global.fetch = jest.fn()
+
+// Polyfill Response for Node.js environment
+if (!global.Response) {
+  global.Response = class Response {
+    constructor(body, init = {}) {
+      this.body = body
+      this.status = init.status || 200
+      this.statusText = init.statusText || ''
+      this.headers = init.headers || new Map()
+      this.ok = this.status >= 200 && this.status < 300
+    }
+    
+    async json() {
+      return JSON.parse(this.body)
+    }
+    
+    async text() {
+      return this.body?.toString() || ''
+    }
+  }
+}
 
 // Suppress console errors in tests
 const originalError = console.error

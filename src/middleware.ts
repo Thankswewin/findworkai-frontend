@@ -1,90 +1,58 @@
 /**
  * Middleware for route protection and security
+ * For now, we'll use a simple approach without auth checking in middleware
+ * Auth is handled by the Supabase client in components
  */
 
-import { withAuth } from 'next-auth/middleware'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 
-// Protected routes that require authentication
-const protectedPaths = [
-  '/dashboard',
-  '/api/ai-agent',
-  '/api/businesses',
-  '/api/campaigns',
-  '/api/leads',
-]
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next()
+  const path = req.nextUrl.pathname
 
-// Admin-only routes
-const adminPaths = [
-  '/dashboard/settings',
-  '/api/admin',
-]
-
-// Public routes that don't require authentication
-const publicPaths = [
-  '/',
-  '/login',
-  '/register',
-  '/forgot-password',
-  '/api/auth',
-]
-
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token
-    const path = req.nextUrl.pathname
-
-    // Check if route requires admin access
-    if (adminPaths.some(adminPath => path.startsWith(adminPath))) {
-      if (token?.role !== 'admin') {
-        return NextResponse.redirect(new URL('/dashboard', req.url))
-      }
-    }
-
-    // Add security headers
-    const response = NextResponse.next()
+  // Add security headers
+  // In development, allow frames for testing canvas mode
+  const isDev = process.env.NODE_ENV === 'development'
+  res.headers.set('X-Frame-Options', isDev ? 'SAMEORIGIN' : 'DENY')
+  res.headers.set('X-Content-Type-Options', 'nosniff')
+  res.headers.set('X-XSS-Protection', '1; mode=block')
+  res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  
+  // CSRF token for state-changing operations
+  // Skip CSRF check for API routes that need to work without it
+  const skipCSRFPaths = [
+    '/api/auth',
+    '/api/places',
+    '/api/places-osm',
+    '/api/test-env',
+    '/api/hubspot',
+    '/api/ai-agent'
+  ]
+  
+  const isPublicPath = [
+    '/',
+    '/login',
+    '/register',
+    '/forgot-password',
+  ].some(publicPath => path === publicPath || path.startsWith(publicPath + '/'))
+  
+  // Skip CSRF in development mode for easier testing
+  const isDevelopment = process.env.NODE_ENV === 'development'
+  
+  if (req.method !== 'GET' && req.method !== 'HEAD' && !isDevelopment) {
+    const csrfToken = req.headers.get('x-csrf-token')
+    const shouldSkipCSRF = skipCSRFPaths.some(path => req.nextUrl.pathname.startsWith(path))
     
-    // Security headers
-    response.headers.set('X-Frame-Options', 'DENY')
-    response.headers.set('X-Content-Type-Options', 'nosniff')
-    response.headers.set('X-XSS-Protection', '1; mode=block')
-    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-    
-    // CSRF token for state-changing operations
-    if (req.method !== 'GET' && req.method !== 'HEAD') {
-      const csrfToken = req.headers.get('x-csrf-token')
-      if (!csrfToken && !path.startsWith('/api/auth')) {
-        return NextResponse.json(
-          { error: 'CSRF token required' },
-          { status: 403 }
-        )
-      }
+    if (!csrfToken && !shouldSkipCSRF && !isPublicPath) {
+      return NextResponse.json(
+        { error: 'CSRF token required' },
+        { status: 403 }
+      )
     }
-
-    return response
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        const path = req.nextUrl.pathname
-
-        // Allow public paths
-        if (publicPaths.some(publicPath => path.startsWith(publicPath))) {
-          return true
-        }
-
-        // Check if user is authenticated for protected paths
-        if (protectedPaths.some(protectedPath => path.startsWith(protectedPath))) {
-          return !!token
-        }
-
-        // Default to requiring authentication
-        return !!token
-      },
-    },
   }
-)
+
+  return res
+}
 
 export const config = {
   matcher: [
