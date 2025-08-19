@@ -45,7 +45,7 @@ export const useBusinessStore = create<BusinessStore>((set, get) => ({
   fetchBusinesses: async () => {
     set({ isLoading: true, error: null })
     try {
-      const response = await axios.get(`${API_URL}/api/v1/businesses`)
+      const response = await axios.get(`${API_URL}/businesses`)
       const businesses = response.data.map((b: any) => ({
         id: b.id,
         name: b.name,
@@ -59,7 +59,7 @@ export const useBusinessStore = create<BusinessStore>((set, get) => ({
       }))
       
       // Fetch stats
-      const statsResponse = await axios.get(`${API_URL}/api/v1/businesses/stats/overview`)
+      const statsResponse = await axios.get(`${API_URL}/businesses/stats/overview`)
       
       set({ 
         businesses,
@@ -80,7 +80,7 @@ export const useBusinessStore = create<BusinessStore>((set, get) => ({
   searchBusinesses: async (query: string, location: string) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await axios.post(`${API_URL}/api/v1/businesses/search`, {
+      const response = await axios.post(`${API_URL}/businesses/search`, {
         query,
         location,
         radius: 5000
@@ -111,7 +111,7 @@ export const useBusinessStore = create<BusinessStore>((set, get) => ({
       
       for (const business of businesses) {
         const response = await axios.post(
-          `${API_URL}/api/v1/demo/analyze-business`,
+          `${API_URL}/demo/analyze-business`,
           {
             name: business.name,
             business_category: business.category,
@@ -147,7 +147,7 @@ export const useBusinessStore = create<BusinessStore>((set, get) => ({
       }
       
       const response = await axios.post(
-        `${API_URL}/api/v1/demo/generate-email`,
+        `${API_URL}/demo/generate-email`,
         {
           business_name: business.name,
           service_type: serviceType,

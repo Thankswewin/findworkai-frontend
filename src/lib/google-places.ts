@@ -112,7 +112,7 @@ export async function searchBusinesses(query: string, location: string): Promise
   try {
     // Use backend API for searching businesses - NO LOCALHOST
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
-    const response = await fetch(`${apiUrl}/api/v1/businesses/search`, {
+    const response = await fetch(`${apiUrl}/businesses/search`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
