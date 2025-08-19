@@ -41,8 +41,13 @@ export function DebugPanel() {
     return () => clearInterval(interval)
   }, [])
 
-  // Don't render in production
-  if (process.env.NODE_ENV === 'production' && !window.location.search.includes('debug=true')) {
+  // Don't render in production (check only on client side)
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production' && !window.location.search.includes('debug=true')) {
+    return null
+  }
+  
+  // Don't render on server side
+  if (typeof window === 'undefined') {
     return null
   }
 
