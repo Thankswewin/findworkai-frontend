@@ -6,6 +6,7 @@
 import axios, { AxiosInstance } from 'axios'
 import toast from 'react-hot-toast'
 import { createClient } from '@/lib/supabase/client'
+import logger from '@/lib/logger'
 
 // API Configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -99,7 +100,7 @@ class ApiService {
       },
     })
 
-    // Request interceptor to add Supabase token
+    // Request interceptor to add Supabase token and logging
     this.client.interceptors.request.use(async (config) => {
       // Get the current Supabase session
       const { data: { session } } = await this.supabase.auth.getSession()
@@ -108,19 +109,46 @@ class ApiService {
         config.headers.Authorization = `Bearer ${session.access_token}`
       }
       
+      // Log the request
+      logger.apiRequest(
+        config.method?.toUpperCase() || 'GET',
+        config.url || '',
+        config.data
+      )
+      
       return config
     })
 
-    // Response interceptor for error handling
+    // Response interceptor for error handling and logging
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        // Log successful response
+        logger.apiResponse(
+          response.config.method?.toUpperCase() || 'GET',
+          response.config.url || '',
+          response.status,
+          response.data
+        )
+        return response
+      },
       async (error) => {
+        // Log the error
+        logger.apiError(
+          error.config?.method?.toUpperCase() || 'GET',
+          error.config?.url || '',
+          error
+        )
+        
         if (error.response?.status === 401) {
-          // Log the error but don't auto-redirect
-          console.error('API 401 Error:', error.response?.data)
           const message = error.response?.data?.detail || 'Authentication required'
           toast.error(message)
           // Don't auto-redirect, let the component handle it
+        } else if (error.response?.status === 404) {
+          const message = error.response?.data?.detail || 'Resource not found'
+          toast.error(message)
+        } else if (error.response?.status === 500) {
+          const message = 'Server error. Please try again later.'
+          toast.error(message)
         } else {
           const message = error.response?.data?.detail || 'An error occurred'
           toast.error(message)
@@ -149,14 +177,44 @@ class ApiService {
 
   // Business Management
   async searchBusinesses(query: string, location: string, radius: number = 5000) {
-    const response = await this.client.post('/businesses/search', {
-      query,
-      location,
-      radius
-    })
-    // The backend returns an array directly, wrap it for consistency
-    return {
-      businesses: response.data
+    try {
+      logger.info(`Searching businesses: ${query} in ${location}`, { query, location, radius }, 'BusinessSearch')
+      
+      const response = await this.client.post('/businesses/search', {
+        query,
+        location,
+        radius
+      })
+      
+      // Check if we got demo data (usually when backend fails)
+      const businesses = response.data
+      if (businesses && businesses.length > 0 && businesses[0].id?.includes('demo-')) {
+        logger.warn('Received demo data instead of real search results', { businesses }, 'BusinessSearch')
+        // Return empty array with a message instead of demo data
+        toast.warning('Unable to fetch real business data. Please check your connection and try again.')
+        return {
+          businesses: [],
+          isDemo: true,
+          message: 'Real-time search is currently unavailable'
+        }
+      }
+      
+      logger.info(`Found ${businesses.length} businesses`, { count: businesses.length }, 'BusinessSearch')
+      
+      // The backend returns an array directly, wrap it for consistency
+      return {
+        businesses: response.data,
+        isDemo: false
+      }
+    } catch (error: any) {
+      logger.error('Failed to search businesses', error, { query, location }, 'BusinessSearch')
+      
+      // Don't return demo data on error
+      return {
+        businesses: [],
+        isDemo: false,
+        error: error.message
+      }
     }
   }
 
@@ -186,8 +244,26 @@ class ApiService {
   }
 
   async analyzeBusiness(id: string) {
-    const response = await this.client.post(`/businesses/${id}/analyze`)
-    return response.data
+    try {
+      logger.info(`Analyzing business: ${id}`, { businessId: id }, 'BusinessAnalysis')
+      
+      const response = await this.client.post(`/businesses/${id}/analyze`)
+      
+      logger.info(`Analysis complete for business: ${id}`, response.data, 'BusinessAnalysis')
+      
+      return response.data
+    } catch (error: any) {
+      logger.error(`Failed to analyze business: ${id}`, error, { businessId: id }, 'BusinessAnalysis')
+      
+      // Provide more context in the error message
+      if (error.response?.status === 404) {
+        throw new Error('Business not found. It may have been deleted or the ID is incorrect.')
+      } else if (error.response?.status === 500) {
+        throw new Error('Analysis service is temporarily unavailable. Please try again later.')
+      } else {
+        throw error
+      }
+    }
   }
 
   // Lead Scoring

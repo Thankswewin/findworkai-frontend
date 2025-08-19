@@ -4,6 +4,7 @@ import './globals.css'
 import { Providers } from '@/components/providers'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { PerformanceMonitor } from '@/components/performance-monitor'
+import { DebugPanel } from '@/components/DebugPanel'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -59,6 +60,7 @@ export default function RootLayout({
           <Providers>
             <PerformanceMonitor />
             {children}
+            <DebugPanel />
           </Providers>
         </ErrorBoundary>
       </body>
