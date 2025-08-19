@@ -28,9 +28,11 @@ export function DebugPanel() {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    // Check if we're in development mode
+    // Check if we should show debug panel
     const isDev = process.env.NODE_ENV === 'development'
-    if (!isDev) return
+    const hasDebugParam = typeof window !== 'undefined' && window.location.search.includes('debug=true')
+    
+    if (!isDev && !hasDebugParam) return
 
     // Update logs every second
     const interval = setInterval(() => {
@@ -41,8 +43,11 @@ export function DebugPanel() {
     return () => clearInterval(interval)
   }, [])
 
-  // Don't render in production (check only on client side)
-  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production' && !window.location.search.includes('debug=true')) {
+  // Check if we should render the debug panel
+  const isDev = process.env.NODE_ENV === 'development'
+  const hasDebugParam = typeof window !== 'undefined' && window.location.search.includes('debug=true')
+  
+  if (!isDev && !hasDebugParam) {
     return null
   }
   

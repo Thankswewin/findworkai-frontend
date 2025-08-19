@@ -111,7 +111,8 @@ export interface Business {
 export async function searchBusinesses(query: string, location: string): Promise<Business[]> {
   try {
     // Use backend API for searching businesses
-    const response = await fetch(`http://localhost:8000/api/v1/businesses/search`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    const response = await fetch(`${apiUrl}/api/v1/businesses/search`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -126,43 +127,9 @@ export async function searchBusinesses(query: string, location: string): Promise
     const data = await response.json()
     
     if (!response.ok) {
-      // If backend fails, try demo data
-      console.log('Backend search failed, using demo data...')
-      
-      // Return demo businesses for testing
-      return [
-        {
-          id: '1',
-          name: 'Demo Restaurant 1',
-          category: 'Restaurant',
-          location: location,
-          rating: 4.5,
-          totalReviews: 234,
-          hasWebsite: false,
-          opportunityScore: 85
-        },
-        {
-          id: '2',
-          name: 'Demo Coffee Shop',
-          category: 'Coffee Shop',
-          location: location,
-          rating: 4.2,
-          totalReviews: 156,
-          hasWebsite: true,
-          website: 'https://example.com',
-          opportunityScore: 65
-        },
-        {
-          id: '3',
-          name: 'Demo Retail Store',
-          category: 'Retail',
-          location: location,
-          rating: 3.8,
-          totalReviews: 89,
-          hasWebsite: false,
-          opportunityScore: 92
-        }
-      ]
+      // If backend fails, throw error instead of returning demo data
+      console.error('Backend search failed:', response.status, response.statusText)
+      throw new Error(`Backend search failed: ${response.statusText}`)
     }
     
     // Transform backend response to match our Business interface
