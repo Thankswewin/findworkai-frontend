@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import axios from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+// Always use deployed backend - no localhost fallback
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
 
 interface Business {
   id: string

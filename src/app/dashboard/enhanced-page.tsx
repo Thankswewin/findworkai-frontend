@@ -189,7 +189,8 @@ export default function EnhancedDashboard() {
       const city = locationParts[0]?.trim() || 'Unknown'
       const state = locationParts[1]?.trim() || ''
       
-      const response = await fetch(`http://localhost:8000/api/v1/demo/analyze-business`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+      const response = await fetch(`${apiUrl}/demo/analyze-business`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

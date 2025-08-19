@@ -110,8 +110,8 @@ export interface Business {
 
 export async function searchBusinesses(query: string, location: string): Promise<Business[]> {
   try {
-    // Use backend API for searching businesses
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    // Use backend API for searching businesses - NO LOCALHOST
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
     const response = await fetch(`${apiUrl}/api/v1/businesses/search`, {
       method: 'POST',
       headers: {

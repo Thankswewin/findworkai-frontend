@@ -116,7 +116,8 @@ export default function SimplifiedDashboard() {
     setAnalyzingId(business.id)
     
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/demo/analyze-business`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+      const response = await fetch(`${apiUrl}/demo/analyze-business`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -170,7 +171,8 @@ export default function SimplifiedDashboard() {
   // Action handlers for all features
   const handleGenerateEmail = async (business: any) => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/demo/generate-email', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+      const response = await fetch(`${apiUrl}/demo/generate-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

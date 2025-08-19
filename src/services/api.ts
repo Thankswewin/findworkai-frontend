@@ -8,9 +8,9 @@ import toast from 'react-hot-toast'
 import { createClient } from '@/lib/supabase/client'
 import logger from '@/lib/logger'
 
-// API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-const API_PATH = '/api/v1'
+// API Configuration - ALWAYS use the deployed backend
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+const API_PATH = ''  // Path is already included in NEXT_PUBLIC_API_URL
 
 // Types
 export interface LoginCredentials {
@@ -192,35 +192,17 @@ class ApiService {
         radius
       })
       
-      // Check if we got demo data (usually when backend fails)
       const businesses = response.data
-      if (businesses && businesses.length > 0 && businesses[0].id?.includes('demo-')) {
-        logger.warn('Received demo data instead of real search results', { businesses }, 'BusinessSearch')
-        // Return empty array with a message instead of demo data
-        toast.warning('Unable to fetch real business data. Please check your connection and try again.')
-        return {
-          businesses: [],
-          isDemo: true,
-          message: 'Real-time search is currently unavailable'
-        }
-      }
       
       logger.info(`Found ${businesses.length} businesses`, { count: businesses.length }, 'BusinessSearch')
       
-      // The backend returns an array directly, wrap it for consistency
-      return {
-        businesses: response.data,
-        isDemo: false
-      }
+      // The backend returns an array directly, return it as is
+      return businesses
     } catch (error: any) {
       logger.error('Failed to search businesses', error, { query, location }, 'BusinessSearch')
       
-      // Don't return demo data on error
-      return {
-        businesses: [],
-        isDemo: false,
-        error: error.message
-      }
+      // Re-throw the error to be handled by the calling component
+      throw error
     }
   }
 

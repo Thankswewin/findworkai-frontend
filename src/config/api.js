@@ -14,8 +14,8 @@ const getApiBaseUrl = () => {
   const hostname = window.location.hostname;
   
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    // Development environment
-    return 'http://localhost:8000';
+    // Even in development, use deployed backend
+    return process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1';
   } else if (hostname.includes('staging')) {
     // Staging environment
     return 'https://api-staging.findworkai.com';

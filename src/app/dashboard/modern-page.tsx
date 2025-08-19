@@ -409,7 +409,8 @@ export default function ModernDashboard() {
     setAnalyzingId(business.id)
     try {
       // Call the analysis API
-      const response = await fetch(`http://localhost:8000/api/v1/demo/analyze-business`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+      const response = await fetch(`${apiUrl}/demo/analyze-business`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -441,7 +442,8 @@ export default function ModernDashboard() {
   const handleGenerateEmail = async (business: any) => {
     setGeneratingId(business.id)
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/demo/generate-email`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+      const response = await fetch(`${apiUrl}/demo/generate-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
