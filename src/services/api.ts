@@ -9,7 +9,8 @@ import { createClient } from '@/lib/supabase/client'
 import logger from '@/lib/logger'
 
 // API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API_PATH = '/api/v1'
 
 // Types
 export interface LoginCredentials {
@@ -93,8 +94,13 @@ class ApiService {
   private supabase = createClient()
 
   constructor() {
+    // Ensure we only have one /api/v1 in the path
+    const baseURL = API_BASE_URL.endsWith('/api/v1') 
+      ? API_BASE_URL 
+      : `${API_BASE_URL}${API_PATH}`
+      
     this.client = axios.create({
-      baseURL: API_BASE_URL,
+      baseURL,
       headers: {
         'Content-Type': 'application/json',
       },
