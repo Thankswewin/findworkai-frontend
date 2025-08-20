@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Progress } from '@/components/ui/progress'
+import BusinessCard from '@/components/business-card'
 import toast from 'react-hot-toast'
 
 // Business categories configuration
@@ -452,75 +453,97 @@ export function BusinessCategoryExplorer() {
           {/* Business Cards Grid */}
           {!isLoading && businesses.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {businesses.map((business) => (
-                <Card key={business.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  {business.photoUrl && (
-                    <div className="h-48 bg-gray-200 relative">
-                      <img 
-                        src={business.photoUrl} 
-                        alt={business.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold text-lg line-clamp-1">{business.name}</h4>
-                      {business.opportunityScore && (
-                        <Badge variant="outline" className="ml-2">
-                          {business.opportunityScore}% Opportunity
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{business.address}</p>
-                    
-                    <div className="flex items-center gap-4 mb-3">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-medium">{business.rating}</span>
-                        <span className="text-sm text-gray-500">({business.totalReviews})</span>
-                      </div>
-                      {business.hasWebsite ? (
-                        <Badge variant="secondary">
-                          <Globe className="h-3 w-3 mr-1" />
-                          Has Website
-                        </Badge>
-                      ) : (
-                        <Badge variant="destructive">
-                          No Website
-                        </Badge>
-                      )}
-                    </div>
-
-
-                    {/* Actions */}
-                    <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        className="flex-1"
-                        variant={business.hasWebsite ? "outline" : "default"}
-                      >
-                        {business.hasWebsite ? (
-                          <>
-                            <Globe className="h-4 w-4 mr-2" />
-                            View Website
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="h-4 w-4 mr-2" />
-                            Build AI Website
-                          </>
-                        )}
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              {businesses.map((business) => {
+                // Transform business data to match BusinessCard interface
+                const businessForCard = {
+                  ...business,
+                  location: business.address, // BusinessCard expects 'location' not 'address'
+                  website: business.hasWebsite ? `https://example.com/${business.id}` : undefined // Add dummy website for demo
+                }
+                
+                return (
+                  <BusinessCard
+                    key={business.id}
+                    business={businessForCard}
+                    onAnalyze={async (b) => {
+                      setAnalyzingBusinessId(b.id)
+                      try {
+                        // Analyze business
+                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+                        const response = await fetch(`${apiUrl}/demo/analyze-business`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            name: b.name,
+                            business_category: b.category || 'General',
+                            city: b.location?.split(',')[0] || 'Unknown',
+                            state: b.location?.split(',')[1] || '',
+                            rating: b.rating || 0,
+                            total_reviews: b.totalReviews || 0,
+                            has_website: b.hasWebsite || false,
+                            website: b.website || ''
+                          })
+                        })
+                        
+                        const result = await response.json()
+                        
+                        if (result.success) {
+                          // Update business with opportunity score
+                          setBusinesses(prev => prev.map(bus => 
+                            bus.id === b.id 
+                              ? { ...bus, opportunityScore: result.opportunity_score }
+                              : bus
+                          ))
+                          toast.success('Analysis complete!')
+                        }
+                      } catch (error) {
+                        toast.error('Analysis failed')
+                        console.error('Analysis error:', error)
+                      } finally {
+                        setAnalyzingBusinessId(null)
+                      }
+                    }}
+                    onBuildWebsite={(b) => {
+                      toast.info('Opening AI Website Builder...')
+                      // TODO: Open website builder
+                    }}
+                    onGenerateEmail={async (b) => {
+                      try {
+                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+                        const response = await fetch(`${apiUrl}/demo/generate-email`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            business_name: b.name,
+                            service_type: 'digital_marketing',
+                            rating: b.rating
+                          })
+                        })
+                        const result = await response.json()
+                        if (result.success) {
+                          toast.success('Email generated successfully!')
+                          // TODO: Show email dialog
+                        }
+                      } catch (error) {
+                        toast.error('Failed to generate email')
+                      }
+                    }}
+                    onGenerateSMS={(b) => {
+                      toast.info('Generating SMS campaign...')
+                      // TODO: Implement SMS generation
+                    }}
+                    onAnalyzeWebsite={(b) => {
+                      if (b.website) {
+                        window.open(b.website, '_blank')
+                      } else {
+                        toast.info('No website to view')
+                      }
+                    }}
+                    isAnalyzing={analyzingBusinessId === business.id}
+                    viewMode="grid"
+                  />
+                )
+              })}
             </div>
           )}
 
