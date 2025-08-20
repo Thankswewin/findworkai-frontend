@@ -128,7 +128,7 @@ export function BusinessCategoryExplorer() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
       
       try {
-        const response = await fetch(`${apiUrl}/category-search/search`, {
+        const response = await fetch(`${apiUrl}/categories/search`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -136,14 +136,15 @@ export function BusinessCategoryExplorer() {
             subcategory: selectedSubcategory,
             place_types: subcategory.placeTypes,
             location: location,
-            radius: 5000 // 5km radius
+            radius: 5000, // 5km radius
+            analyze_photos: true // Request automatic photo analysis
           })
         })
 
         if (response.ok) {
           const data = await response.json()
           
-          // Transform the data to match our Business interface
+          // Transform the data to match our Business interface, including photo analysis
           const transformedBusinesses: Business[] = data.businesses.map((b: any) => ({
             id: b.place_id,
             name: b.name,
@@ -154,11 +155,25 @@ export function BusinessCategoryExplorer() {
             hasWebsite: b.website ? true : false,
             phone: b.formatted_phone_number,
             photoUrl: b.photo_url,
-            opportunityScore: b.opportunity_score
+            opportunityScore: b.opportunity_score,
+            // Include photo analysis if available from backend
+            photoAnalysis: b.photo_analysis ? {
+              visualScore: b.photo_analysis.visual_score,
+              insights: b.photo_analysis.insights,
+              recommendations: b.photo_analysis.recommendations
+            } : undefined
           }))
 
           setBusinesses(transformedBusinesses)
           toast.success(`Found ${transformedBusinesses.length} ${subcategory.name.toLowerCase()}`)
+          
+          // Automatically analyze photos in background for businesses without analysis
+          transformedBusinesses.forEach((business) => {
+            if (!business.photoAnalysis && business.photoUrl) {
+              analyzeBusinessPhotosInBackground(business)
+            }
+          })
+          
           return
         }
       } catch (apiError) {
@@ -169,6 +184,34 @@ export function BusinessCategoryExplorer() {
       const demoBusinesses = generateDemoBusinesses(subcategory.name, selectedCategory)
       setBusinesses(demoBusinesses)
       toast.info(`Showing demo ${subcategory.name.toLowerCase()} (Backend API unavailable)`)
+      
+      // Auto-analyze demo businesses in background
+      demoBusinesses.forEach((business) => {
+        if (business.photoUrl) {
+          setTimeout(() => {
+            // Simulate photo analysis for demo data
+            setBusinesses(prev => prev.map(b => 
+              b.id === business.id 
+                ? {
+                    ...b,
+                    photoAnalysis: {
+                      visualScore: Math.floor(Math.random() * 30) + 70,
+                      insights: [
+                        'Modern storefront with good lighting',
+                        'Clean and professional appearance',
+                        'Visible signage and branding'
+                      ],
+                      recommendations: [
+                        'Consider adding outdoor seating area',
+                        'Update window displays seasonally'
+                      ]
+                    }
+                  }
+                : b
+            ))
+          }, Math.random() * 2000 + 1000) // Random delay between 1-3 seconds
+        }
+      })
       
     } catch (err) {
       console.error('Error fetching businesses:', err)
@@ -272,13 +315,11 @@ export function BusinessCategoryExplorer() {
     }
   }
 
-  // Analyze business photos
-  const analyzeBusinessPhotos = async (business: Business) => {
-    setAnalyzingBusinessId(business.id)
-    
+  // Analyze business photos in background (silent, no loading state)
+  const analyzeBusinessPhotosInBackground = async (business: Business) => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
-      const response = await fetch(`${apiUrl}/category-search/analyze-photos`, {
+      const response = await fetch(`${apiUrl}/categories/analyze-photos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -306,13 +347,9 @@ export function BusinessCategoryExplorer() {
             }
           : b
       ))
-      
-      toast.success('Photo analysis complete!')
     } catch (err) {
-      console.error('Error analyzing photos:', err)
-      toast.error('Failed to analyze photos')
-    } finally {
-      setAnalyzingBusinessId(null)
+      console.error('Background photo analysis failed:', err)
+      // Silent failure - no toast notification for background operations
     }
   }
 
@@ -520,18 +557,17 @@ export function BusinessCategoryExplorer() {
                       <Button 
                         size="sm" 
                         className="flex-1"
-                        onClick={() => analyzeBusinessPhotos(business)}
-                        disabled={analyzingBusinessId === business.id}
+                        variant={business.hasWebsite ? "outline" : "default"}
                       >
-                        {analyzingBusinessId === business.id ? (
+                        {business.hasWebsite ? (
                           <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Analyzing...
+                            <Globe className="h-4 w-4 mr-2" />
+                            View Website
                           </>
                         ) : (
                           <>
-                            <Camera className="h-4 w-4 mr-2" />
-                            Analyze Photos
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Build AI Website
                           </>
                         )}
                       </Button>
