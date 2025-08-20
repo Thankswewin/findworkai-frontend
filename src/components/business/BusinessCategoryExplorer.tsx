@@ -167,13 +167,17 @@ export function BusinessCategoryExplorer(props: BusinessCategoryExplorerProps) {
             id: b.place_id,
             name: b.name,
             address: b.formatted_address || b.vicinity,
+            location: b.formatted_address || b.vicinity, // BusinessCard expects 'location'
             rating: b.rating || 0,
             totalReviews: b.user_ratings_total || 0,
             category: subcategory.name,
             hasWebsite: b.website ? true : false,
+            website: b.website,
             phone: b.formatted_phone_number,
+            email: b.email,
             photoUrl: b.photo_url,
-            opportunityScore: b.opportunity_score,
+            opportunityScore: b.opportunity_score || (b.website ? 30 : 70),
+            place_id: b.place_id,
             // Include photo analysis if available from backend
             photoAnalysis: b.photo_analysis ? {
               visualScore: b.photo_analysis.visual_score,
@@ -191,12 +195,9 @@ export function BusinessCategoryExplorer(props: BusinessCategoryExplorerProps) {
         console.warn('Backend API unavailable, using demo data:', apiError)
       }
 
-      // Fallback: Use demo data if backend is unavailable
-      const demoBusinesses = generateDemoBusinesses(subcategory.name, selectedCategory)
-      setBusinesses(demoBusinesses)
-      toast.info(`Showing demo ${subcategory.name.toLowerCase()} (Backend API unavailable)`)
-      
-      // Photo analysis will only be used for context when generating AI content
+      // If backend is unavailable, show error instead of demo data
+      setError('Unable to connect to the server. Please try again later.')
+      toast.error('Connection failed. Please check your internet connection.')
       
     } catch (err) {
       console.error('Error fetching businesses:', err)
@@ -207,98 +208,6 @@ export function BusinessCategoryExplorer(props: BusinessCategoryExplorerProps) {
     }
   }
 
-  // Generate demo businesses for testing
-  const generateDemoBusinesses = (subcategoryName: string, categoryId: string): Business[] => {
-    const demoData: Record<string, Business[]> = {
-      'restaurant': [
-        {
-          id: 'demo-1',
-          name: 'The Garden Bistro',
-          address: '123 Main St, New York, NY 10001',
-          rating: 4.5,
-          totalReviews: 234,
-          category: subcategoryName,
-          hasWebsite: false,
-          phone: '(212) 555-0123',
-          photoUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400',
-          opportunityScore: 85
-        },
-        {
-          id: 'demo-2',
-          name: 'Mama\'s Kitchen',
-          address: '456 Oak Ave, New York, NY 10002',
-          rating: 4.2,
-          totalReviews: 156,
-          category: subcategoryName,
-          hasWebsite: true,
-          phone: '(212) 555-0456',
-          photoUrl: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400',
-          opportunityScore: 65
-        }
-      ],
-      'medical': [
-        {
-          id: 'demo-3',
-          name: 'City Medical Center',
-          address: '789 Health Blvd, New York, NY 10003',
-          rating: 4.7,
-          totalReviews: 445,
-          category: subcategoryName,
-          hasWebsite: false,
-          phone: '(212) 555-0789',
-          photoUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400',
-          opportunityScore: 78
-        },
-        {
-          id: 'demo-4',
-          name: 'Family Care Clinic',
-          address: '321 Wellness Way, New York, NY 10004',
-          rating: 4.4,
-          totalReviews: 223,
-          category: subcategoryName,
-          hasWebsite: true,
-          phone: '(212) 555-0321',
-          photoUrl: 'https://images.unsplash.com/photo-1631815588090-e4194d7d9a2f?w=400',
-          opportunityScore: 72
-        }
-      ],
-      'default': [
-        {
-          id: 'demo-5',
-          name: `Premium ${subcategoryName} Services`,
-          address: '100 Business Plaza, New York, NY 10005',
-          rating: 4.3,
-          totalReviews: 189,
-          category: subcategoryName,
-          hasWebsite: false,
-          phone: '(212) 555-1000',
-          photoUrl: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400',
-          opportunityScore: 82
-        },
-        {
-          id: 'demo-6',
-          name: `${subcategoryName} Experts LLC`,
-          address: '200 Commerce St, New York, NY 10006',
-          rating: 4.6,
-          totalReviews: 312,
-          category: subcategoryName,
-          hasWebsite: true,
-          phone: '(212) 555-2000',
-          photoUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400',
-          opportunityScore: 68
-        }
-      ]
-    }
-
-    // Return appropriate demo data based on subcategory
-    if (categoryId === 'food_beverage' && subcategoryName.toLowerCase().includes('restaurant')) {
-      return demoData['restaurant']
-    } else if (categoryId === 'health_wellness' && subcategoryName.toLowerCase().includes('medical')) {
-      return demoData['medical']
-    } else {
-      return demoData['default']
-    }
-  }
 
   // Analyze business photos in background (silent, no loading state)
   const analyzeBusinessPhotosInBackground = async (business: Business) => {
@@ -475,8 +384,7 @@ export function BusinessCategoryExplorer(props: BusinessCategoryExplorerProps) {
                 // Transform business data to match BusinessCard interface
                 const businessForCard = {
                   ...business,
-                  location: business.address, // BusinessCard expects 'location' not 'address'
-                  website: business.hasWebsite ? `https://example.com/${business.id}` : undefined // Add dummy website for demo
+                  location: business.address // BusinessCard expects 'location' not 'address'
                 }
                 
                 return (
