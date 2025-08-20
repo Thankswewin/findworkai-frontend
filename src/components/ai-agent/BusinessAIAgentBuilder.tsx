@@ -28,6 +28,7 @@ import { GeneratedArtifact } from '@/lib/ai-agent'
 import { useArtifactStore } from '@/stores/artifactStore'
 import toast from 'react-hot-toast'
 import { generateModernWebsite } from '@/lib/ai-website-generator'
+import { generateEnhancedBusinessWebsite } from '@/lib/enhanced-website-generator'
 
 interface BusinessAIAgentBuilderProps {
   business: {
@@ -177,22 +178,25 @@ export function BusinessAIAgentBuilder({
       let artifact: GeneratedArtifact
       
       if (agentType === 'website') {
-        // Use the advanced multi-model generator for websites
-        const modernHtml = await generateModernWebsite(business, apiKey)
+        // Always use enhanced business-specific generator for consistent results
+        const websiteHtml = generateEnhancedBusinessWebsite(business)
+        
         artifact = {
           id: Date.now().toString(),
-          name: `${business.name} - Modern Website`,
+          name: `${business.name} - ${business.category || 'Business'} Website`,
           type: 'website',
-          content: modernHtml,
+          content: websiteHtml,
           generatedAt: new Date(),
           metadata: {
             framework: 'HTML/CSS/JS',
             responsive: true,
             seoOptimized: true,
             businessName: business.name,
-            businessCategory: business.category,
-            uiLibrary: 'Tailwind + shadcn/ui patterns',
-            aiModels: ['Claude Opus 4.1', 'Gemini 2.5 Pro', 'Claude Sonnet 4']
+            businessCategory: business.category || 'Business',
+            businessType: business.category || 'Business',
+            tailored: true,
+            uiLibrary: 'Tailwind + Industry-Specific Design',
+            features: ['Business-specific colors', 'Industry-optimized content', 'Custom CTAs', 'Tailored features']
           }
         }
       } else if (agentType === 'content') {

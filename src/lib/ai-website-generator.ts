@@ -73,34 +73,37 @@ export async function generateModernWebsite(
   business: BusinessData,
   apiKey: string
 ): Promise<string> {
-  // For now, always use the enhanced modern design directly
-  // This ensures users see the beautiful UI immediately
-  // Later, when API is configured properly, we can enable real AI calls
-  
-  // Uncomment below to use real AI models when ready:
-  /*
+  // First, try to use the backend API for business-specific generation
   try {
-    // Step 1: Use Claude Opus for intelligent structure planning
-    const structure = await generateWebsiteStructure(business, apiKey)
+    const response = await fetch('/api/v1/ai-agent-v2/generate/website', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        business_name: business.name,
+        business_type: business.category || business.type || 'Business',
+        services: business.services || [],
+        style: 'modern',
+        color_scheme: null,
+        sections: ['hero', 'services', 'about', 'testimonials', 'contact'],
+        framework: 'nextjs'
+      })
+    })
     
-    // Step 2: Use Gemini Pro for creative design elements
-    const design = await generateDesignSystem(business, apiKey)
-    
-    // Step 3: Use Claude Sonnet for modern component code
-    const components = await generateComponents(business, structure, design, apiKey)
-    
-    // Step 4: Use Gemini Flash for quick optimizations
-    const optimized = await optimizeWebsite(components, apiKey)
-    
-    return assembleWebsite(business, optimized, design)
+    if (response.ok) {
+      const result = await response.json()
+      if (result.code) {
+        console.log('✨ Using AI-generated business-specific website')
+        return result.code
+      }
+    }
   } catch (error) {
-    console.error('Error generating website:', error)
-    // Fallback to simpler generation
-    return generateFallbackWebsite(business)
+    console.log('Backend API not available, using local templates')
   }
-  */
   
-  // Use the enhanced modern design directly
+  // Fallback to business-specific templates
+  // This ensures each business type gets a unique, tailored design
   return generateEnhancedModernWebsite(business)
 }
 
