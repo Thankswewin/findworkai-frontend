@@ -103,7 +103,25 @@ interface Business {
   }
 }
 
-export function BusinessCategoryExplorer() {
+interface BusinessCategoryExplorerProps {
+  onAnalyze?: (business: any) => void
+  onBuildWebsite?: (business: any) => void
+  onGenerateEmail?: (business: any) => void
+  onGenerateSMS?: (business: any) => void
+  onAnalyzeWebsite?: (business: any) => void
+  selectedBusiness?: any
+  setSelectedBusiness?: (business: any) => void
+  showAIAgent?: boolean
+  setShowAIAgent?: (show: boolean) => void
+  aiAgentType?: 'website' | 'content' | 'marketing'
+  setAIAgentType?: (type: 'website' | 'content' | 'marketing') => void
+  showEmailDialog?: boolean
+  setShowEmailDialog?: (show: boolean) => void
+  generatedEmail?: any
+  setGeneratedEmail?: (email: any) => void
+}
+
+export function BusinessCategoryExplorer(props: BusinessCategoryExplorerProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null)
   const [location, setLocation] = useState('New York, NY')
@@ -465,80 +483,17 @@ export function BusinessCategoryExplorer() {
                   <BusinessCard
                     key={business.id}
                     business={businessForCard}
-                    onAnalyze={async (b) => {
-                      setAnalyzingBusinessId(b.id)
-                      try {
-                        // Analyze business
-                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
-                        const response = await fetch(`${apiUrl}/demo/analyze-business`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            name: b.name,
-                            business_category: b.category || 'General',
-                            city: b.location?.split(',')[0] || 'Unknown',
-                            state: b.location?.split(',')[1] || '',
-                            rating: b.rating || 0,
-                            total_reviews: b.totalReviews || 0,
-                            has_website: b.hasWebsite || false,
-                            website: b.website || ''
-                          })
-                        })
-                        
-                        const result = await response.json()
-                        
-                        if (result.success) {
-                          // Update business with opportunity score
-                          setBusinesses(prev => prev.map(bus => 
-                            bus.id === b.id 
-                              ? { ...bus, opportunityScore: result.opportunity_score }
-                              : bus
-                          ))
-                          toast.success('Analysis complete!')
-                        }
-                      } catch (error) {
-                        toast.error('Analysis failed')
-                        console.error('Analysis error:', error)
-                      } finally {
-                        setAnalyzingBusinessId(null)
-                      }
-                    }}
-                    onBuildWebsite={(b) => {
-                      toast.info('Opening AI Website Builder...')
-                      // TODO: Open website builder
-                    }}
-                    onGenerateEmail={async (b) => {
-                      try {
-                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
-                        const response = await fetch(`${apiUrl}/demo/generate-email`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            business_name: b.name,
-                            service_type: 'digital_marketing',
-                            rating: b.rating
-                          })
-                        })
-                        const result = await response.json()
-                        if (result.success) {
-                          toast.success('Email generated successfully!')
-                          // TODO: Show email dialog
-                        }
-                      } catch (error) {
-                        toast.error('Failed to generate email')
-                      }
-                    }}
-                    onGenerateSMS={(b) => {
-                      toast.info('Generating SMS campaign...')
-                      // TODO: Implement SMS generation
-                    }}
-                    onAnalyzeWebsite={(b) => {
+                    onAnalyze={props.onAnalyze || ((b) => toast.info('Analysis not configured'))}
+                    onBuildWebsite={props.onBuildWebsite || ((b) => toast.info('Website builder not configured'))}
+                    onGenerateEmail={props.onGenerateEmail || ((b) => toast.info('Email generation not configured'))}
+                    onGenerateSMS={props.onGenerateSMS || ((b) => toast.info('SMS generation not configured'))}
+                    onAnalyzeWebsite={props.onAnalyzeWebsite || ((b) => {
                       if (b.website) {
                         window.open(b.website, '_blank')
                       } else {
                         toast.info('No website to view')
                       }
-                    }}
+                    })}
                     isAnalyzing={analyzingBusinessId === business.id}
                     viewMode="grid"
                   />

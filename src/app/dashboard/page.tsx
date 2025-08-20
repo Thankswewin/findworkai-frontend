@@ -338,7 +338,32 @@ export default function Dashboard() {
           
           {/* Category Explorer Mode */}
           {showCategoryExplorer && (
-            <BusinessCategoryExplorer />
+            <BusinessCategoryExplorer 
+              onAnalyze={handleAnalyze}
+              onBuildWebsite={handleBuildWebsite}
+              onGenerateEmail={handleGenerateEmail}
+              onGenerateSMS={(b) => {
+                toast.success('Generating SMS campaign...')
+                trackEvent('sms_generation', { business_id: b.id })
+              }}
+              onAnalyzeWebsite={(b) => {
+                if (b.website) {
+                  window.open(b.website, '_blank')
+                } else {
+                  toast.info('No website to analyze')
+                }
+              }}
+              selectedBusiness={selectedBusiness}
+              setSelectedBusiness={setSelectedBusiness}
+              showAIAgent={showAIAgent}
+              setShowAIAgent={setShowAIAgent}
+              aiAgentType={aiAgentType}
+              setAIAgentType={setAIAgentType}
+              showEmailDialog={showEmailDialog}
+              setShowEmailDialog={setShowEmailDialog}
+              generatedEmail={generatedEmail}
+              setGeneratedEmail={setGeneratedEmail}
+            />
           )}
           
           {/* Traditional Search Mode */}
