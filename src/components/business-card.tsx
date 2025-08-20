@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import toast from 'react-hot-toast'
 
-interface SimplifiedBusinessCardProps {
+interface BusinessCardProps {
   business: {
     id: string
     name: string
@@ -45,7 +45,7 @@ interface SimplifiedBusinessCardProps {
   viewMode?: 'grid' | 'list'
 }
 
-export default function SimplifiedBusinessCard({ 
+export default function BusinessCard({ 
   business, 
   onAnalyze,
   onBuildWebsite,
@@ -54,7 +54,7 @@ export default function SimplifiedBusinessCard({
   onAnalyzeWebsite,
   isAnalyzing,
   viewMode = 'grid'
-}: SimplifiedBusinessCardProps) {
+}: BusinessCardProps) {
   const [loadingAction, setLoadingAction] = useState<string | null>(null)
 
   const handleAction = async (action: string, callback?: (business: any) => void) => {

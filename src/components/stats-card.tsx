@@ -1,38 +1,36 @@
-import { ReactNode } from 'react'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+'use client'
+
+import React from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 
 interface StatsCardProps {
   title: string
   value: number | string
-  icon: ReactNode
-  trend?: string
-  trendUp?: boolean
+  icon: React.ReactNode
+  color: 'blue' | 'purple' | 'orange' | 'green'
 }
 
-export function StatsCard({ title, value, icon, trend, trendUp }: StatsCardProps) {
+export default function StatsCard({ title, value, icon, color }: StatsCardProps) {
+  const colorClasses = {
+    blue: 'text-blue-600 bg-blue-50',
+    purple: 'text-purple-600 bg-purple-50',
+    orange: 'text-orange-600 bg-orange-50',
+    green: 'text-green-600 bg-green-50'
+  }
+
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <div className="flex items-center text-gray-500 mb-2">
-            {icon}
-            <span className="ml-2 text-sm font-medium">{title}</span>
+    <Card className="hover:shadow-sm transition-shadow">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-600">{title}</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
           </div>
-          <div className="text-2xl font-bold text-gray-900">{value}</div>
-          {trend && (
-            <div className="flex items-center mt-2">
-              {trendUp ? (
-                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-              ) : (
-                <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-              )}
-              <span className={`text-sm ${trendUp ? 'text-green-600' : 'text-red-600'}`}>
-                {trend}
-              </span>
-            </div>
-          )}
+          <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
+            {icon}
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

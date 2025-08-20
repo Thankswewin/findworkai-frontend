@@ -5,12 +5,12 @@ import { Search, MapPin, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
-interface SimplifiedSearchBarProps {
+interface SearchBarProps {
   onSearch: (query: string, location: string) => void
   isLoading?: boolean
 }
 
-export default function SimplifiedSearchBar({ onSearch, isLoading }: SimplifiedSearchBarProps) {
+export default function SearchBar({ onSearch, isLoading }: SearchBarProps) {
   const [query, setQuery] = useState('')
   const [location, setLocation] = useState('')
   const [focused, setFocused] = useState<'query' | 'location' | null>(null)
