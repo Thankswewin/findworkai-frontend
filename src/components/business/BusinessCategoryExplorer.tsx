@@ -136,8 +136,7 @@ export function BusinessCategoryExplorer() {
             subcategory: selectedSubcategory,
             place_types: subcategory.placeTypes,
             location: location,
-            radius: 5000, // 5km radius
-            analyze_photos: true // Request automatic photo analysis
+            radius: 5000 // 5km radius
           })
         })
 
@@ -167,13 +166,6 @@ export function BusinessCategoryExplorer() {
           setBusinesses(transformedBusinesses)
           toast.success(`Found ${transformedBusinesses.length} ${subcategory.name.toLowerCase()}`)
           
-          // Automatically analyze photos in background for businesses without analysis
-          transformedBusinesses.forEach((business) => {
-            if (!business.photoAnalysis && business.photoUrl) {
-              analyzeBusinessPhotosInBackground(business)
-            }
-          })
-          
           return
         }
       } catch (apiError) {
@@ -185,33 +177,7 @@ export function BusinessCategoryExplorer() {
       setBusinesses(demoBusinesses)
       toast.info(`Showing demo ${subcategory.name.toLowerCase()} (Backend API unavailable)`)
       
-      // Auto-analyze demo businesses in background
-      demoBusinesses.forEach((business) => {
-        if (business.photoUrl) {
-          setTimeout(() => {
-            // Simulate photo analysis for demo data
-            setBusinesses(prev => prev.map(b => 
-              b.id === business.id 
-                ? {
-                    ...b,
-                    photoAnalysis: {
-                      visualScore: Math.floor(Math.random() * 30) + 70,
-                      insights: [
-                        'Modern storefront with good lighting',
-                        'Clean and professional appearance',
-                        'Visible signage and branding'
-                      ],
-                      recommendations: [
-                        'Consider adding outdoor seating area',
-                        'Update window displays seasonally'
-                      ]
-                    }
-                  }
-                : b
-            ))
-          }, Math.random() * 2000 + 1000) // Random delay between 1-3 seconds
-        }
-      })
+      // Photo analysis will only be used for context when generating AI content
       
     } catch (err) {
       console.error('Error fetching businesses:', err)
@@ -495,15 +461,6 @@ export function BusinessCategoryExplorer() {
                         alt={business.name}
                         className="w-full h-full object-cover"
                       />
-                      {business.photoAnalysis && (
-                        <div className="absolute top-2 right-2">
-                          <Badge 
-                            variant={business.photoAnalysis.visualScore > 70 ? "default" : "secondary"}
-                          >
-                            Visual Score: {business.photoAnalysis.visualScore}%
-                          </Badge>
-                        </div>
-                      )}
                     </div>
                   )}
                   
@@ -537,20 +494,6 @@ export function BusinessCategoryExplorer() {
                       )}
                     </div>
 
-                    {/* Photo Analysis Results */}
-                    {business.photoAnalysis && (
-                      <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs font-semibold text-gray-700 mb-2">Visual Insights:</p>
-                        <ul className="text-xs text-gray-600 space-y-1">
-                          {business.photoAnalysis.insights.slice(0, 2).map((insight, idx) => (
-                            <li key={idx} className="flex items-start">
-                              <span className="mr-1">•</span>
-                              <span>{insight}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
 
                     {/* Actions */}
                     <div className="flex gap-2">
