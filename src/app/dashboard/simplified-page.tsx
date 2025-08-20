@@ -421,6 +421,19 @@ export default function SimplifiedDashboard() {
                   key={business.id}
                   business={business}
                   onAnalyze={handleAnalyze}
+                  onBuildWebsite={handleBuildWebsite}
+                  onGenerateEmail={handleGenerateEmail}
+                  onGenerateSMS={(b) => {
+                    toast.success('Generating SMS campaign...')
+                    trackEvent('sms_generation', { business_id: b.id })
+                  }}
+                  onAnalyzeWebsite={(b) => {
+                    if (b.website) {
+                      window.open(b.website, '_blank')
+                    } else {
+                      toast.info('No website to analyze')
+                    }
+                  }}
                   isAnalyzing={analyzingId === business.id}
                   viewMode={viewMode}
                 />

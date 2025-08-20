@@ -1,10 +1,12 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { 
   Star, MapPin, Globe, TrendingUp, 
   Loader2, MoreVertical, ExternalLink,
-  Mail, Phone
+  Mail, Phone, Sparkles, FileText,
+  MessageSquare, BarChart3, Zap,
+  PenTool, Search, Eye, ChevronRight
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -15,7 +17,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
+import toast from 'react-hot-toast'
 
 interface SimplifiedBusinessCardProps {
   business: {
@@ -30,18 +34,41 @@ interface SimplifiedBusinessCardProps {
     phone?: string
     email?: string
     opportunityScore?: number
+    place_id?: string
   }
   onAnalyze: (business: any) => void
+  onBuildWebsite?: (business: any) => void
+  onGenerateEmail?: (business: any) => void
+  onGenerateSMS?: (business: any) => void
+  onAnalyzeWebsite?: (business: any) => void
   isAnalyzing?: boolean
   viewMode?: 'grid' | 'list'
 }
 
 export default function SimplifiedBusinessCard({ 
   business, 
-  onAnalyze, 
+  onAnalyze,
+  onBuildWebsite,
+  onGenerateEmail,
+  onGenerateSMS,
+  onAnalyzeWebsite,
   isAnalyzing,
   viewMode = 'grid'
 }: SimplifiedBusinessCardProps) {
+  const [loadingAction, setLoadingAction] = useState<string | null>(null)
+
+  const handleAction = async (action: string, callback?: (business: any) => void) => {
+    if (!callback) {
+      toast.error('This feature is coming soon!')
+      return
+    }
+    setLoadingAction(action)
+    try {
+      await callback(business)
+    } finally {
+      setLoadingAction(null)
+    }
+  }
   
   const getOpportunityLabel = (score?: number) => {
     if (!score) return null
@@ -216,30 +243,109 @@ export default function SimplifiedBusinessCard({
           </div>
         )}
 
-        {/* Single Primary Action */}
-        <Button
-          onClick={() => onAnalyze(business)}
-          disabled={isAnalyzing}
-          className="w-full"
-          size="sm"
-        >
-          {isAnalyzing ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Analyzing...
-            </>
-          ) : business.opportunityScore ? (
-            <>
-              <TrendingUp className="mr-2 h-4 w-4" />
-              View Analysis
-            </>
+        {/* Action Buttons */}
+        <div className="space-y-2">
+          {/* Primary Action - Website */}
+          {!business.hasWebsite ? (
+            <Button
+              onClick={() => handleAction('website', onBuildWebsite)}
+              disabled={loadingAction === 'website'}
+              className="w-full"
+              size="sm"
+            >
+              {loadingAction === 'website' ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Building...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Build AI Website
+                </>
+              )}
+            </Button>
           ) : (
-            <>
-              <TrendingUp className="mr-2 h-4 w-4" />
-              Analyze Opportunity
-            </>
+            <Button
+              onClick={() => handleAction('analyze', onAnalyzeWebsite)}
+              disabled={loadingAction === 'analyze'}
+              className="w-full"
+              size="sm"
+              variant="outline"
+            >
+              {loadingAction === 'analyze' ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Globe className="mr-2 h-4 w-4" />
+                  View Website
+                </>
+              )}
+            </Button>
           )}
-        </Button>
+
+          {/* Secondary Actions */}
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              onClick={() => handleAction('email', onGenerateEmail)}
+              disabled={loadingAction === 'email'}
+              size="sm"
+              variant="outline"
+            >
+              {loadingAction === 'email' ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Mail className="h-4 w-4 mr-1" />
+                  Email
+                </>
+              )}
+            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <ChevronRight className="h-4 w-4 mr-1" />
+                  More
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>AI Tools</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem 
+                  onClick={() => handleAction('sms', onGenerateSMS)}
+                  disabled={loadingAction === 'sms'}
+                >
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Generate SMS
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem 
+                  onClick={() => onAnalyze(business)}
+                  disabled={isAnalyzing}
+                >
+                  <BarChart3 className="mr-2 h-4 w-4" />
+                  Full Analysis
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Contact</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                
+                {business.phone && (
+                  <DropdownMenuItem onClick={() => window.open(`tel:${business.phone}`, '_blank')}>
+                    <Phone className="mr-2 h-4 w-4" />
+                    Call
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )
