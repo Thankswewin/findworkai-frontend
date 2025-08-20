@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 import toast from 'react-hot-toast'
 import apiService from '@/services/api'
-import EnhancedBusinessCard from '@/components/enhanced-business-card'
+import BusinessCard from '@/components/business-card'
 
 interface Business {
   id: string
@@ -206,7 +206,7 @@ export default function SearchLeadsPage() {
                   }
                   
                   return (
-                    <EnhancedBusinessCard
+                    <BusinessCard
                       key={business.id}
                       business={normalizedBusiness}
                       isAnalyzing={analyzingBusinessId === business.id}
@@ -250,31 +250,29 @@ export default function SearchLeadsPage() {
                         toast.info('Generating email...')
                         // TODO: Implement email generation
                       }}
-                      onQuickBuildWebsite={(b) => {
+                      onBuildWebsite={(b) => {
                         if (!b.analyzed) {
                           toast.error('Please analyze the business first')
                           return
                         }
                         toast.info('Building website...')
-                        // TODO: Implement quick website build with context from analysis
+                        // TODO: Implement website build with context from analysis
                       }}
-                      onQuickGenerateContent={(b) => {
+                      onGenerateSMS={(b) => {
                         if (!b.analyzed) {
                           toast.error('Please analyze the business first')
                           return
                         }
-                        toast.info('Generating content...')
-                        // TODO: Implement content generation with context from analysis
+                        toast.info('Generating SMS campaign...')
+                        // TODO: Implement SMS generation with context from analysis
                       }}
-                      onQuickMarketingKit={(b) => {
-                        if (!b.analyzed) {
-                          toast.error('Please analyze the business first')
-                          return
+                      onAnalyzeWebsite={(b) => {
+                        if (b.website) {
+                          window.open(b.website, '_blank')
+                        } else {
+                          toast.info('No website to view')
                         }
-                        toast.info('Creating marketing kit...')
-                        // TODO: Implement marketing kit with context from analysis
                       }}
-                      showAIActions={true}
                     />
                   )
                 })}
