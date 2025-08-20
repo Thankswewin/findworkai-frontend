@@ -38,6 +38,7 @@ import ErrorState from '@/components/error-state'
 import { searchBusinesses } from '@/lib/google-places'
 import analytics from '@/services/analytics'
 import { BusinessAIAgentBuilder } from '@/components/ai-agent/BusinessAIAgentBuilder'
+import { BusinessCategoryExplorer } from '@/components/business/BusinessCategoryExplorer'
 
 // Storage helper
 const storage = {
@@ -75,6 +76,8 @@ export default function SimplifiedDashboard() {
   const [aiAgentType, setAIAgentType] = useState<'website' | 'content' | 'marketing'>('website')
   const [showEmailDialog, setShowEmailDialog] = useState(false)
   const [generatedEmail, setGeneratedEmail] = useState<any>(null)
+  const [showCategoryExplorer, setShowCategoryExplorer] = useState(true)
+  const [showSearchMode, setShowSearchMode] = useState(false)
   
   // Simplified stats
   const stats = {
@@ -303,10 +306,45 @@ export default function SimplifiedDashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Search Section */}
+        {/* Toggle between Category Explorer and Search Mode */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Find Your Next Client</h2>
-          <SimplifiedSearchBar onSearch={handleSearch} isLoading={isLoading} />
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Find Your Next Client</h2>
+            <div className="flex gap-2">
+              <Button
+                variant={showCategoryExplorer ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  setShowCategoryExplorer(true)
+                  setShowSearchMode(false)
+                }}
+              >
+                <Building2 className="h-4 w-4 mr-2" />
+                Browse Categories
+              </Button>
+              <Button
+                variant={showSearchMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  setShowSearchMode(true)
+                  setShowCategoryExplorer(false)
+                }}
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Search Mode
+              </Button>
+            </div>
+          </div>
+          
+          {/* Category Explorer Mode */}
+          {showCategoryExplorer && (
+            <BusinessCategoryExplorer />
+          )}
+          
+          {/* Traditional Search Mode */}
+          {showSearchMode && (
+            <SimplifiedSearchBar onSearch={handleSearch} isLoading={isLoading} />
+          )}
         </div>
 
         {/* Simplified Stats */}
@@ -357,8 +395,8 @@ export default function SimplifiedDashboard() {
           </div>
         )}
 
-        {/* Results Section */}
-        {!isLoading && businesses.length > 0 && (
+        {/* Results Section - Only show in search mode */}
+        {showSearchMode && !isLoading && businesses.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
@@ -391,8 +429,8 @@ export default function SimplifiedDashboard() {
           </div>
         )}
 
-        {/* Empty State */}
-        {!isLoading && businesses.length === 0 && !error && (
+        {/* Empty State - Only show in search mode */}
+        {showSearchMode && !isLoading && businesses.length === 0 && !error && (
           <Card className="p-12">
             <CardContent className="text-center">
               <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
