@@ -137,7 +137,8 @@ export async function searchBusinesses(query: string, location: string): Promise
       return data.businesses.map((b: any) => ({
         id: b.id || b.place_id,
         name: b.name,
-        category: b.category || b.business_type || 'Business',
+        // Backend returns 'business_category', we need 'category' for frontend
+        category: b.business_category || b.category || b.business_type || 'Business',
         location: b.location || b.address || location,
         rating: b.rating || 0,
         totalReviews: b.total_reviews || b.totalReviews || 0,
