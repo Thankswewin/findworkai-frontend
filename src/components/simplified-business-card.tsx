@@ -245,50 +245,44 @@ export default function SimplifiedBusinessCard({
 
         {/* Action Buttons */}
         <div className="space-y-2">
-          {/* Primary Action - Website */}
-          {!business.hasWebsite ? (
-            <Button
-              onClick={() => handleAction('website', onBuildWebsite)}
-              disabled={loadingAction === 'website'}
-              className="w-full"
-              size="sm"
-            >
-              {loadingAction === 'website' ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Building...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Build AI Website
-                </>
-              )}
-            </Button>
-          ) : (
-            <Button
-              onClick={() => handleAction('analyze', onAnalyzeWebsite)}
-              disabled={loadingAction === 'analyze'}
-              className="w-full"
-              size="sm"
-              variant="outline"
-            >
-              {loadingAction === 'analyze' ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                <>
-                  <Globe className="mr-2 h-4 w-4" />
-                  View Website
-                </>
-              )}
-            </Button>
-          )}
+          {/* Primary Action - Always show Build Website */}
+          <Button
+            onClick={() => handleAction('website', onBuildWebsite)}
+            disabled={loadingAction === 'website'}
+            className="w-full"
+            size="sm"
+            variant={business.hasWebsite ? "default" : "default"}
+          >
+            {loadingAction === 'website' ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Building...
+              </>
+            ) : (
+              <>
+                <Sparkles className="mr-2 h-4 w-4" />
+                {business.hasWebsite ? 'Build Better Website' : 'Build AI Website'}
+              </>
+            )}
+          </Button>
 
           {/* Secondary Actions */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className={`grid gap-2 ${business.hasWebsite ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            {business.hasWebsite && (
+              <Button
+                onClick={() => handleAction('view', onAnalyzeWebsite)}
+                disabled={loadingAction === 'view'}
+                size="sm"
+                variant="outline"
+                title="View current website"
+              >
+                {loadingAction === 'view' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Globe className="h-4 w-4" />
+                )}
+              </Button>
+            )}
             <Button
               onClick={() => handleAction('email', onGenerateEmail)}
               disabled={loadingAction === 'email'}
