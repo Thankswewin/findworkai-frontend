@@ -29,6 +29,7 @@ import { useArtifactStore } from '@/stores/artifactStore'
 import toast from 'react-hot-toast'
 import { generateModernWebsite } from '@/lib/ai-website-generator'
 import { generateEnhancedBusinessWebsite } from '@/lib/enhanced-website-generator'
+import { generateEnhancedWebsite } from '@/lib/enhanced-ai-website-generator'
 
 interface BusinessAIAgentBuilderProps {
   business: {
@@ -178,25 +179,57 @@ export function BusinessAIAgentBuilder({
       let artifact: GeneratedArtifact
       
       if (agentType === 'website') {
-        // Always use enhanced business-specific generator for consistent results
-        const websiteHtml = generateEnhancedBusinessWebsite(business)
+        // Use premium enhanced generator with modern UI system
+        const websiteHtml = await generateEnhancedWebsite({
+          businessData: {
+            name: business.name,
+            type: business.category,
+            description: getBusinessDescription(business),
+            phone: business.phone,
+            email: business.email,
+            address: business.location,
+            website: business.website,
+            rating: business.rating || 4.9,
+            reviews: business.totalReviews || 500,
+            services: getServiceDescriptions(business).primary?.split(',').map(s => s.trim()),
+            socialMedia: {
+              facebook: business.facebook,
+              instagram: business.instagram,
+              twitter: business.twitter
+            }
+          },
+          style: 'premium',
+          includeAnimations: true,
+          sections: ['hero', 'about', 'services', 'features', 'contact']
+        })
         
         artifact = {
           id: Date.now().toString(),
-          name: `${business.name} - ${business.category || 'Business'} Website`,
+          name: `${business.name} - Premium ${business.category || 'Business'} Website`,
           type: 'website',
           content: websiteHtml,
           generatedAt: new Date(),
           metadata: {
-            framework: 'HTML/CSS/JS',
+            framework: 'HTML/CSS/JS + Framer Motion',
             responsive: true,
             seoOptimized: true,
             businessName: business.name,
             businessCategory: business.category || 'Business',
             businessType: business.category || 'Business',
             tailored: true,
-            uiLibrary: 'Tailwind + Industry-Specific Design',
-            features: ['Business-specific colors', 'Industry-optimized content', 'Custom CTAs', 'Tailored features']
+            uiLibrary: 'Premium UI System + shadcn/ui + Tailwind CSS',
+            features: [
+              'Premium design system',
+              'Modern animations (Framer Motion)',
+              'Business-specific components',
+              'Industry-optimized styling',
+              'SEO-optimized structure',
+              'Mobile-first responsive design',
+              'Professional typography',
+              'Custom color palettes',
+              'Interactive elements',
+              'Performance optimized'
+            ]
           }
         }
       } else if (agentType === 'content') {
