@@ -175,104 +175,112 @@ export function BusinessAIAgentBuilder({
         await new Promise(resolve => setTimeout(resolve, 500))
       }
 
-      // Generate the artifact based on agent type
+      // Generate the artifact based on agent type using REAL AI
       let artifact: GeneratedArtifact
       
-      if (agentType === 'website') {
-        // Generate business data for React component
-        const businessData = {
+      // Always use the backend AI service for generation
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+        console.log('🚀 Calling REAL AI service for', agentType, 'at:', backendUrl)
+        
+        let prompt = ''
+        let businessInfo = {
           name: business.name,
-          type: business.category,
-          description: getBusinessDescription(business),
+          business_category: business.category,
+          city: business.location?.split(',')[0] || 'Unknown',
+          state: business.location?.split(',')[1] || '',
+          rating: business.rating || 4.0,
+          total_reviews: business.totalReviews || 0,
+          has_website: business.hasWebsite || false,
           phone: business.phone,
           email: business.email,
-          address: business.location,
-          website: business.website,
-          rating: business.rating || 4.9,
-          reviews: business.totalReviews || 500,
-          services: getServiceDescriptions(business).primary?.split(',').map(s => s.trim()),
-          socialMedia: {
-            facebook: business.facebook,
-            instagram: business.instagram,
-            twitter: business.twitter
-          }
+          address: business.location
         }
         
-        // Determine business type for design tokens
-        const businessType = determineBusinessType(business.category)
+        switch (agentType) {
+          case 'website':
+            prompt = `Generate a complete, modern, professional website HTML for this business. Include:
+            1. Complete HTML with embedded CSS and JavaScript
+            2. Modern responsive design with Tailwind CSS  
+            3. Professional layout with hero, services, about, contact sections
+            4. SEO optimization and meta tags
+            5. Mobile-responsive design
+            6. Contact forms and call-to-action buttons
+            7. Google Maps integration if applicable
+            8. Social media links
+            Make it unique and specific to this ${business.category} business.`
+            break
+          case 'content':
+            prompt = `Generate professional content package for this business. Include:
+            1. Homepage copy
+            2. About us section
+            3. Service descriptions
+            4. Blog post ideas
+            5. FAQ section
+            6. Call-to-action copy
+            Make it engaging and SEO-optimized.`
+            break
+          case 'marketing':
+            prompt = `Generate comprehensive marketing campaign for this business. Include:
+            1. Email campaign templates
+            2. Social media content calendar
+            3. Google Ads copy
+            4. Landing page content
+            5. Promotional offers
+            6. Brand messaging
+            Make it conversion-focused and professional.`
+            break
+        }
+        
+        setCurrentStep('Generating with AI... This may take a moment...')
+        
+        const response = await fetch(`${backendUrl}/ai-agent/generate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: prompt,
+            business_info: businessInfo,
+            type: agentType,
+            temperature: 0.8,
+            max_tokens: 4000,
+            agent_name: config.name,
+            tone: 'professional',
+            service_type: agentType
+          })
+        })
+
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.detail || 'AI service temporarily unavailable')
+        }
+
+        const data = await response.json()
+        const aiContent = data.output || data.response || ''
+        
+        console.log('✅ Received REAL AI response!')
         
         artifact = {
           id: Date.now().toString(),
-          name: `${business.name} - Premium ${business.category || 'Business'} Website`,
-          type: 'website',
-          content: {
-            businessData,
-            businessType,
-            includeAnimations: true,
-            isReactComponent: true
-          },
+          name: `${business.name} - ${config.name} Output`,
+          type: agentType,
+          content: aiContent,
           generatedAt: new Date(),
           metadata: {
-            framework: 'React + Framer Motion + shadcn/ui',
+            framework: 'HTML/CSS/JS',
             responsive: true,
             seoOptimized: true,
             businessName: business.name,
-            businessCategory: business.category || 'Business',
-            businessType: businessType,
-            tailored: true,
-            uiLibrary: 'Premium UI System + shadcn/ui + Tailwind CSS',
-            features: [
-              'Premium design system',
-              'Modern animations (Framer Motion)',
-              'Business-specific components',
-              'Industry-optimized styling',
-              'SEO-optimized structure',
-              'Mobile-first responsive design',
-              'Professional typography',
-              'Custom color palettes',
-              'Interactive elements',
-              'Performance optimized',
-              'React components with shadcn/ui'
-            ]
-          }
-        }
-      } else if (agentType === 'content') {
-        // Use enhanced content generator with business-specific styling
-        const contentHtml = generateEnhancedContentPackage(business)
-        artifact = {
-          id: Date.now().toString(),
-          name: `${business.name} - Content Kit`,
-          type: 'content',
-          content: contentHtml,
-          generatedAt: new Date(),
-          metadata: {
-            framework: 'HTML/CSS/JS',
-            responsive: true,
-            businessName: business.name,
             businessCategory: business.category,
-            features: ['Copy buttons', 'Collapsible FAQs', 'Rich formatting']
+            generatedByAI: true,
+            aiModel: data.model_used || 'AI Service',
+            features: config.capabilities
           }
         }
-      } else if (agentType === 'marketing') {
-        // Use enhanced marketing generator with business-specific campaigns
-        const marketingHtml = generateEnhancedMarketingPackage(business)
-        artifact = {
-          id: Date.now().toString(),
-          name: `${business.name} - Marketing Campaign`,
-          type: 'marketing',
-          content: marketingHtml,
-          generatedAt: new Date(),
-          metadata: {
-            framework: 'HTML/CSS/JS',
-            responsive: true,
-            businessName: business.name,
-            businessCategory: business.category,
-            features: ['Email templates', 'Social campaigns', 'Google Ads', 'Landing pages']
-          }
-        }
-      } else {
-        // Use existing generators for other types (now async for REAL AI)
-        artifact = await generateArtifact(agentType, business)
+      } catch (error: any) {
+        console.error('❌ AI Service Error:', error)
+        throw new Error(`Failed to generate ${agentType}: ${error.message}`)
       }
       
       setGeneratedArtifact(artifact)
