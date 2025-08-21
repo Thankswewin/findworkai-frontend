@@ -271,8 +271,8 @@ export function BusinessAIAgentBuilder({
           }
         }
       } else {
-        // Use existing generators for other types
-        artifact = generateArtifact(agentType, business)
+        // Use existing generators for other types (now async for REAL AI)
+        artifact = await generateArtifact(agentType, business)
       }
       
       setGeneratedArtifact(artifact)
@@ -317,7 +317,7 @@ export function BusinessAIAgentBuilder({
     toast.success('Downloaded successfully!')
   }
 
-  const generateArtifact = (type: string, businessData: any): GeneratedArtifact => {
+  const generateArtifact = async (type: string, businessData: any): Promise<GeneratedArtifact> => {
     const baseArtifact = {
       id: Date.now().toString(),
       name: `${businessData.name} - ${type.charAt(0).toUpperCase() + type.slice(1)}`,
@@ -328,35 +328,119 @@ export function BusinessAIAgentBuilder({
         responsive: true,
         seoOptimized: true,
         businessName: businessData.name,
-        businessCategory: businessData.category
+        businessCategory: businessData.category,
+        generatedByAI: true,
+        aiService: 'production'
       }
     }
 
-    switch (type) {
-      case 'website':
-        return {
-          ...baseArtifact,
-          content: generateWebsiteHTML(businessData),
-          type: 'website'
+    // Call the REAL AI service through our backend!
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+      console.log('🚀 Calling REAL AI service for', type, 'at:', backendUrl)
+      
+      let prompt = ''
+      switch (type) {
+        case 'website':
+          prompt = `Generate a complete, modern, professional website HTML for ${businessData.name}, a ${businessData.category} business in ${businessData.location}. Include:
+          1. Complete HTML with embedded CSS and JavaScript
+          2. Modern responsive design with Tailwind CSS
+          3. Professional layout with hero, services, about, contact sections
+          4. SEO optimization
+          5. Mobile-responsive design
+          6. Contact forms and call-to-action buttons
+          Make it unique and specific to this ${businessData.category} business.`
+          break
+        case 'content':
+          prompt = `Generate professional content package for ${businessData.name}, a ${businessData.category} business. Include blog posts, service descriptions, and marketing copy.`
+          break
+        case 'marketing':
+          prompt = `Generate comprehensive marketing campaign for ${businessData.name}, a ${businessData.category} business. Include email templates, social media content, and ad copy.`
+          break
+        default:
+          prompt = `Generate ${type} for ${businessData.name}, a ${businessData.category} business.`
+      }
+      
+      const response = await fetch(`${backendUrl}/ai-agent/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          business_input: `Name: ${businessData.name}\nCategory: ${businessData.category}\nLocation: ${businessData.location}\nRating: ${businessData.rating}`,
+          temperature: 0.8,
+          max_tokens: 4000,
+          agent_name: 'Website Builder Agent',
+          tone: 'professional',
+          service_type: type
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('AI service temporarily unavailable')
+      }
+
+      const data = await response.json()
+      const aiContent = data.output || data.response || data
+      
+      console.log('✅ Received REAL AI response!')
+      
+      return {
+        ...baseArtifact,
+        content: aiContent,
+        type: type as any
+      }
+      
+    } catch (error) {
+      console.error('❌ AI Service Error:', error)
+      console.log('⚠️ Falling back to basic template')
+      
+      // Honest fallback message
+      const fallbackHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>AI Service Temporarily Unavailable</title>
+          <style>
+            body { font-family: system-ui; padding: 40px; background: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            h1 { color: #333; }
+            .error { background: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 5px; color: #991b1b; }
+            .retry { background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>AI Service Temporarily Unavailable</h1>
+            <div class="error">
+              <p><strong>Unable to generate ${type} with AI at this moment.</strong></p>
+              <p>This could be because:</p>
+              <ul>
+                <li>The backend service is starting up (takes 30-60 seconds on free tier)</li>
+                <li>High demand on the AI service</li>
+                <li>Temporary connection issue</li>
+              </ul>
+            </div>
+            <p>Business: ${businessData.name}</p>
+            <p>Type: ${businessData.category}</p>
+            <p>Location: ${businessData.location}</p>
+            <button class="retry" onclick="window.location.reload()">Try Again</button>
+          </div>
+        </body>
+        </html>
+      `
+      
+      return {
+        ...baseArtifact,
+        content: fallbackHTML,
+        type: type as any,
+        metadata: {
+          ...baseArtifact.metadata,
+          error: true,
+          fallback: true
         }
-      case 'content':
-        return {
-          ...baseArtifact,
-          content: generateContentPackage(businessData),
-          type: 'content'
-        }
-      case 'marketing':
-        return {
-          ...baseArtifact,
-          content: generateMarketingPackage(businessData),
-          type: 'marketing'
-        }
-      default:
-        return {
-          ...baseArtifact,
-          content: `Generated ${type} package for ${businessData.name}`,
-          type: type as any
-        }
+      }
     }
   }
 
