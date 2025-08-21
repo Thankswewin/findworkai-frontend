@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FindWorkAI Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>FindWorkAI Integration Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Backend Health Check</h2>
+        <button onclick="testHealthCheck()">Test Health Endpoint</button>
+        <div id="health-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: AI Website Generation</h2>
+        <button onclick="testAIGeneration()">Test AI Generation</button>
+        <div id="ai-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Frontend Environment Check</h2>
+        <button onclick="checkFrontendEnv()">Check Frontend Config</button>
+        <div id="env-result"></div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'https://findworkai-backend-1.onrender.com/api/v1';
+        const FRONTEND_URL = 'https://findworkai.vercel.app';
+
+        async function testHealthCheck() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.innerHTML = '<p>Testing backend health...</p>';
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Backend is healthy!</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Backend returned error: ${response.status}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Failed to connect: ${error.message}</p>`;
+            }
+        }
+
+        async function testAIGeneration() {
+            const resultDiv = document.getElementById('ai-result');
+            resultDiv.innerHTML = '<p>Testing AI generation...</p>';
+            
+            const testData = {
+                type: "website",
+                prompt: "Build a professional website for a tech startup",
+                businessInfo: {
+                    name: "TechStart Solutions",
+                    industry: "Technology",
+                    description: "Innovative software development company"
+                }
+            };
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/ai-agent/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': FRONTEND_URL
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ AI Generation successful!</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ AI Generation failed</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Failed to generate: ${error.message}</p>`;
+            }
+        }
+
+        async function checkFrontendEnv() {
+            const resultDiv = document.getElementById('env-result');
+            resultDiv.innerHTML = '<p>Checking frontend configuration...</p>';
+            
+            try {
+                // Test if frontend is accessible
+                const response = await fetch(FRONTEND_URL, {
+                    method: 'HEAD'
+                });
+                
+                let configStatus = [];
+                
+                // Check frontend availability
+                if (response.ok || response.redirected) {
+                    configStatus.push('✅ Frontend is accessible at ' + FRONTEND_URL);
+                } else {
+                    configStatus.push('❌ Frontend not accessible');
+                }
+                
+                // Check if API calls would work from frontend
+                configStatus.push('✅ Backend URL configured: ' + BACKEND_URL);
+                configStatus.push('ℹ️ CORS should be enabled for origin: ' + FRONTEND_URL);
+                
+                resultDiv.innerHTML = `
+                    <p class="success">Configuration Status:</p>
+                    <ul>
+                        ${configStatus.map(status => `<li>${status}</li>`).join('')}
+                    </ul>
+                    <p><strong>Note:</strong> To fully test the integration, visit your production site at <a href="${FRONTEND_URL}" target="_blank">${FRONTEND_URL}</a> and try the "Build AI Website" feature.</p>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error checking configuration: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

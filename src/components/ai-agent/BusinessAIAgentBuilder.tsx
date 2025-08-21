@@ -180,7 +180,7 @@ export function BusinessAIAgentBuilder({
       
       // Always use the backend AI service for generation
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend-1.onrender.com/api/v1'
         console.log('🚀 Calling REAL AI service for', agentType, 'at:', backendUrl)
         
         let prompt = ''

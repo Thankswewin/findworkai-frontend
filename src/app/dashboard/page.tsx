@@ -119,7 +119,7 @@ export default function Dashboard() {
     setAnalyzingId(business.id)
     
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend-1.onrender.com/api/v1'
       const response = await fetch(`${apiUrl}/demo/analyze-business`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -174,7 +174,7 @@ export default function Dashboard() {
   // Action handlers for all features
   const handleGenerateEmail = async (business: any) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend-1.onrender.com/api/v1'
       const response = await fetch(`${apiUrl}/demo/generate-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -9,7 +9,7 @@ import { createClient } from '@/lib/supabase/client'
 import logger from '@/lib/logger'
 
 // API Configuration - ALWAYS use the deployed backend
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend-1.onrender.com/api/v1'
 const API_PATH = ''  // Path is already included in NEXT_PUBLIC_API_URL
 
 // Types
