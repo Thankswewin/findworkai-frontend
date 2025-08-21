@@ -179,43 +179,46 @@ export function BusinessAIAgentBuilder({
       let artifact: GeneratedArtifact
       
       if (agentType === 'website') {
-        // Use premium enhanced generator with modern UI system
-        const websiteHtml = await generateEnhancedWebsite({
-          businessData: {
-            name: business.name,
-            type: business.category,
-            description: getBusinessDescription(business),
-            phone: business.phone,
-            email: business.email,
-            address: business.location,
-            website: business.website,
-            rating: business.rating || 4.9,
-            reviews: business.totalReviews || 500,
-            services: getServiceDescriptions(business).primary?.split(',').map(s => s.trim()),
-            socialMedia: {
-              facebook: business.facebook,
-              instagram: business.instagram,
-              twitter: business.twitter
-            }
-          },
-          style: 'premium',
-          includeAnimations: true,
-          sections: ['hero', 'about', 'services', 'features', 'contact']
-        })
+        // Generate business data for React component
+        const businessData = {
+          name: business.name,
+          type: business.category,
+          description: getBusinessDescription(business),
+          phone: business.phone,
+          email: business.email,
+          address: business.location,
+          website: business.website,
+          rating: business.rating || 4.9,
+          reviews: business.totalReviews || 500,
+          services: getServiceDescriptions(business).primary?.split(',').map(s => s.trim()),
+          socialMedia: {
+            facebook: business.facebook,
+            instagram: business.instagram,
+            twitter: business.twitter
+          }
+        }
+        
+        // Determine business type for design tokens
+        const businessType = determineBusinessType(business.category)
         
         artifact = {
           id: Date.now().toString(),
           name: `${business.name} - Premium ${business.category || 'Business'} Website`,
           type: 'website',
-          content: websiteHtml,
+          content: {
+            businessData,
+            businessType,
+            includeAnimations: true,
+            isReactComponent: true
+          },
           generatedAt: new Date(),
           metadata: {
-            framework: 'HTML/CSS/JS + Framer Motion',
+            framework: 'React + Framer Motion + shadcn/ui',
             responsive: true,
             seoOptimized: true,
             businessName: business.name,
             businessCategory: business.category || 'Business',
-            businessType: business.category || 'Business',
+            businessType: businessType,
             tailored: true,
             uiLibrary: 'Premium UI System + shadcn/ui + Tailwind CSS',
             features: [
@@ -228,7 +231,8 @@ export function BusinessAIAgentBuilder({
               'Professional typography',
               'Custom color palettes',
               'Interactive elements',
-              'Performance optimized'
+              'Performance optimized',
+              'React components with shadcn/ui'
             ]
           }
         }
@@ -1283,6 +1287,32 @@ export function BusinessAIAgentBuilder({
     mission: `To provide outstanding ${business.category.toLowerCase()} services to the ${business.location} community`,
     values: ['Quality', 'Reliability', 'Customer Satisfaction']
   })
+
+  // Helper function to determine business type for premium UI system
+  const determineBusinessType = (category: string): string => {
+    const categoryLower = category.toLowerCase()
+    const businessTypeMap = {
+      restaurant: ['restaurant', 'cafe', 'bistro', 'diner', 'bakery', 'food'],
+      medical: ['medical', 'healthcare', 'dental', 'clinic', 'hospital'],
+      fitness: ['fitness', 'gym', 'yoga', 'pilates', 'training'],
+      beauty: ['beauty', 'salon', 'spa', 'barbershop', 'nail'],
+      legal: ['legal', 'law', 'attorney', 'lawyer'],
+      automotive: ['automotive', 'auto', 'car', 'mechanic'],
+      tech: ['tech', 'software', 'it', 'consulting'],
+      retail: ['retail', 'store', 'boutique', 'shop'],
+      real_estate: ['real estate', 'realtor', 'property'],
+      education: ['education', 'school', 'university', 'tutoring'],
+      hospitality: ['hotel', 'resort', 'travel', 'tourism']
+    }
+    
+    for (const [type, keywords] of Object.entries(businessTypeMap)) {
+      if (keywords.some(keyword => categoryLower.includes(keyword))) {
+        return type
+      }
+    }
+    
+    return 'restaurant' // fallback
+  }
 
   // Enhanced generators that use business-specific templates and styling
   const generateEnhancedContentPackage = (business: any): string => {
