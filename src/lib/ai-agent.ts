@@ -459,54 +459,92 @@ export class BusinessIntelligenceAgent {
     }
   }
 
-  // Call OpenRouter API (supports multiple models)
+  // Call our backend API instead of OpenRouter directly!
   private async callOpenAI(prompt: string): Promise<any> {
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      // Use our backend API which has the REAL AI service!
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+      
+      console.log('🚀 Calling backend AI service at:', backendUrl)
+      
+      const response = await fetch(`${backendUrl}/ai-agent/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-          'HTTP-Referer': this.siteUrl || 'http://localhost:3000', // Required by OpenRouter
-          'X-Title': this.siteName // Optional but recommended
         },
         body: JSON.stringify({
-          model: this.model,
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an expert business consultant and digital transformation specialist. Generate high-quality, actionable content.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
+          prompt: prompt,
           temperature: 0.7,
           max_tokens: 2000,
-          // OpenRouter specific options
-          route: 'fallback', // Use fallback routing if primary model is unavailable
-          transforms: ['middle-out'] // Optimize for best performance
+          agent_name: 'Business Intelligence Agent',
+          tone: 'professional',
+          service_type: 'digital_transformation'
         })
       })
 
       const data = await response.json()
       
-      if (data.error) {
-        throw new Error(data.error.message)
+      if (!response.ok) {
+        console.error('Backend API error:', data)
+        throw new Error(data.detail || 'AI generation failed')
       }
 
-      const content = data.choices[0].message.content
+      // Extract the output from our backend response
+      const content = data.output || data.response || data
+      
+      console.log('✅ Received AI response from backend')
       
       // Try to parse as JSON if possible
       try {
-        return JSON.parse(content)
+        if (typeof content === 'string' && (content.includes('{') || content.includes('['))) {
+          return JSON.parse(content)
+        }
+        return content
       } catch {
         return content
       }
     } catch (error) {
-      console.error('OpenAI API Error:', error)
-      throw error
+      console.error('❌ Backend API Error:', error)
+      console.log('⚠️ Using fallback response...')
+      
+      // Return a REAL error message, not fake data!
+      return this.getFallbackResponse(prompt)
+    }
+  }
+  
+  // Add honest fallback instead of fake AI
+  private getFallbackResponse(prompt: string): any {
+    // At least be honest about the failure!
+    const errorMessage = `
+I apologize, but I'm unable to generate a response at this moment due to a connection issue.
+
+Your request was: ${prompt.substring(0, 100)}...
+
+Possible reasons:
+1. The backend service is starting up (takes 30-60 seconds on free tier)
+2. API connection issue
+3. Service temporarily unavailable
+
+Please try again in a moment. If the issue persists, contact support.
+    `
+    
+    // Return appropriate fallback based on prompt type
+    if (prompt.includes('website')) {
+      return {
+        error: true,
+        message: errorMessage,
+        fallback: true,
+        suggestion: 'Try again to generate a real website with AI'
+      }
+    } else if (prompt.includes('campaign')) {
+      return {
+        error: true,
+        message: errorMessage,
+        fallback: true,
+        suggestion: 'Try again to generate a real marketing campaign'
+      }
+    } else {
+      return errorMessage
     }
   }
 
