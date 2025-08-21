@@ -1,5 +1,40 @@
 {
+  "name": "findworkai-frontend",
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "NEXT_PUBLIC_APP_NAME": "FindWorkAI",
+    "NEXT_PUBLIC_APP_VERSION": "2.0.0"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_API_URL": "https://findworkai-backend.onrender.com/api/v1",
+      "NEXT_PUBLIC_GOOGLE_MAPS_KEY": "AIzaSyCu3ZA8pZVZ9WOjg5RyCyYeFRjEPIm1xFM",
+      "NEXT_PUBLIC_SUPABASE_URL": "https://iisbjsfjuuxenkkjvpli.supabase.co",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpc2Jqc2ZqdXV4ZW5ra2p2cGxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MTEzNTcsImV4cCI6MjA3MDM4NzM1N30.qFyZk30uXviMs_4N6QhzFmlIPtpK_cM9jpr2bbTsrJY",
+      "NEXT_PUBLIC_OPENROUTER_API_KEY": "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",
+      "NEXT_PUBLIC_AI_MODEL": "anthropic/claude-3-haiku",
+      "NEXTAUTH_SECRET": "your-secret-key-change-this-in-production-dev-only-12345678",
+      "NEXTAUTH_URL": "https://findworkai.vercel.app"
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/v1/:path*",
+      "destination": "https://findworkai-backend.onrender.com/api/v1/:path*"
+    }
+  ]
 }
