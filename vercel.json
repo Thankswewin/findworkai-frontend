@@ -10,7 +10,7 @@
   },
   "build": {
     "env": {
-      "NEXT_PUBLIC_API_URL": "https://findworkai-backend.onrender.com/api/v1",
+      "NEXT_PUBLIC_API_URL": "https://findworkai-backend-1.onrender.com/api/v1",
       "NEXT_PUBLIC_GOOGLE_MAPS_KEY": "AIzaSyCu3ZA8pZVZ9WOjg5RyCyYeFRjEPIm1xFM",
       "NEXT_PUBLIC_SUPABASE_URL": "https://iisbjsfjuuxenkkjvpli.supabase.co",
       "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpc2Jqc2ZqdXV4ZW5ra2p2cGxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MTEzNTcsImV4cCI6MjA3MDM4NzM1N30.qFyZk30uXviMs_4N6QhzFmlIPtpK_cM9jpr2bbTsrJY",
@@ -34,7 +34,7 @@
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "https://findworkai-backend.onrender.com/api/v1/:path*"
+      "destination": "https://findworkai-backend-1.onrender.com/api/v1/:path*"
     }
   ]
 }

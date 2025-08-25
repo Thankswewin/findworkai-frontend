@@ -220,6 +220,10 @@ export function BusinessAIAgentBuilder({
         setCurrentStep('Sending request to AI service...')
         setProgress(20)
         
+        // Create AbortController for timeout management
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 180000) // 3 minutes
+        
         const response = await fetch(`${backendUrl}/mcp-enhanced/generate-enhanced`, {
           method: 'POST',
           headers: {
@@ -233,8 +237,11 @@ export function BusinessAIAgentBuilder({
             max_iterations: 3,
             framework: 'html',
             style_preference: 'modern'
-          })
+          }),
+          signal: controller.signal
         })
+        
+        clearTimeout(timeoutId)
 
         setProgress(50)
         setCurrentStep('Waiting for AI to generate content...')
@@ -397,6 +404,10 @@ export function BusinessAIAgentBuilder({
           prompt = `Generate ${type} for ${businessData.name}, a ${businessData.category} business.`
       }
       
+      // Create AbortController for timeout management
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 180000) // 3 minutes
+      
       const response = await fetch(`${backendUrl}/mcp-enhanced/generate-enhanced`, {
         method: 'POST',
         headers: {
@@ -415,8 +426,11 @@ export function BusinessAIAgentBuilder({
           max_iterations: 3,
           framework: 'html',
           style_preference: 'modern'
-        })
+        }),
+        signal: controller.signal
       })
+      
+      clearTimeout(timeoutId)
 
       if (!response.ok) {
         throw new Error('AI service temporarily unavailable')
