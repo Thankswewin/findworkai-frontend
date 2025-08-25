@@ -60,11 +60,12 @@ export class EnhancedGenerationService {
    * Generate enhanced website with AI self-improvement
    */
   async generateWebsite(request: GenerationRequest): Promise<GenerationResponse> {
+    // Temporarily disabled for testing - remove this comment when auth is implemented
     const token = localStorage.getItem('access_token');
     
-    if (!token) {
-      throw new Error('Authentication required');
-    }
+    // if (!token) {
+    //   throw new Error('Authentication required');
+    // }
 
     const defaultRequest: GenerationRequest = {
       ...request,
@@ -76,12 +77,17 @@ export class EnhancedGenerationService {
       style_preference: request.style_preference ?? 'modern'
     };
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${this.baseUrl}/api/v1/mcp-enhanced/generate-enhanced`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers,
       body: JSON.stringify(defaultRequest)
     });
 
