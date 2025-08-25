@@ -234,7 +234,7 @@ export function BusinessAIAgentBuilder({
         
         setCurrentStep('Generating with AI... This may take a moment...')
         
-        const response = await fetch(`${backendUrl}/ai-agent/generate`, {
+        const response = await fetch(`${backendUrl}/mcp-enhanced/generate`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -369,7 +369,7 @@ export function BusinessAIAgentBuilder({
           prompt = `Generate ${type} for ${businessData.name}, a ${businessData.category} business.`
       }
       
-      const response = await fetch(`${backendUrl}/ai-agent/generate`, {
+      const response = await fetch(`${backendUrl}/mcp-enhanced/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
