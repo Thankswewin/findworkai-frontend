@@ -156,24 +156,9 @@ export function BusinessAIAgentBuilder({
     setProgress(0)
 
     try {
-      // Real AI generation with progress updates
-      const progressSteps = [
-        'Connecting to AI models...',
-        'Claude Opus analyzing business structure...',
-        'Gemini Pro designing modern UI...',
-        'Claude Sonnet generating components...',
-        'Optimizing with Gemini Flash...',
-        'Applying shadcn/ui patterns...',
-        'Finalizing your premium website...'
-      ]
-      
-      for (let i = 0; i < progressSteps.length; i++) {
-        setCurrentStep(progressSteps[i])
-        setProgress(((i + 1) / progressSteps.length) * 100)
-        
-        // Give UI time to update
-        await new Promise(resolve => setTimeout(resolve, 500))
-      }
+      // REAL progress - no fake steps
+      setCurrentStep('Connecting to backend API...')
+      setProgress(10)
 
       // Generate the artifact based on agent type using REAL AI
       let artifact: GeneratedArtifact
@@ -232,7 +217,8 @@ export function BusinessAIAgentBuilder({
             break
         }
         
-        setCurrentStep('Generating with AI... This may take a moment...')
+        setCurrentStep('Sending request to AI service...')
+        setProgress(20)
         
         const response = await fetch(`${backendUrl}/mcp-enhanced/generate-enhanced`, {
           method: 'POST',
@@ -250,15 +236,22 @@ export function BusinessAIAgentBuilder({
           })
         })
 
+        setProgress(50)
+        setCurrentStep('Waiting for AI to generate content...')
+        
         if (!response.ok) {
           const error = await response.json()
           throw new Error(error.detail || 'AI service temporarily unavailable')
         }
 
+        setProgress(80)
+        setCurrentStep('Processing AI response...')
+        
         const data = await response.json()
         const aiContent = data.final_output || data.output || data.response || ''
         
         console.log('✅ Received REAL AI response!')
+        setProgress(100)
         
         artifact = {
           id: Date.now().toString(),
