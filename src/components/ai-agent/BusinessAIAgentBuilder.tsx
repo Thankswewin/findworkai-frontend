@@ -344,7 +344,7 @@ export function BusinessAIAgentBuilder({
 
     // Call the REAL AI service through our backend!
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend-1.onrender.com/api/v1'
       console.log('🚀 Calling REAL AI service for', type, 'at:', backendUrl)
       
       let prompt = ''

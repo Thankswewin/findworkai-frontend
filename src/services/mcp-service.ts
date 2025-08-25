@@ -11,8 +11,9 @@ export interface MCPAIRequest {
   business_info: {
     name: string;
     business_category: string;
-    city: string;
-    state: string;
+    city?: string;
+    state?: string;
+    location?: string;
     rating?: number;
     has_website?: boolean;
     website?: string;
@@ -20,19 +21,35 @@ export interface MCPAIRequest {
     phone?: string;
     address?: string;
   };
+  competitor_urls?: string[];
+  enable_mcp?: boolean;
+  enable_self_reflection?: boolean;
+  enable_self_correction?: boolean;
+  max_iterations?: number;
+  framework?: string;
+  style_preference?: string;
+  // Legacy fields for compatibility
   existing_website_url?: string;
-  generation_type: 'website' | 'email' | 'content';
-  framework: 'html' | 'nextjs' | 'react';
-  style: 'modern' | 'classic' | 'minimal' | 'bold';
+  generation_type?: 'website' | 'email' | 'content';
+  style?: 'modern' | 'classic' | 'minimal' | 'bold';
   component_requirements?: string[];
-  use_mcp_context: boolean;
+  use_mcp_context?: boolean;
   temperature?: number;
   max_tokens?: number;
 }
 
 export interface MCPAIResponse {
-  output: string;
-  mcp_context_used: boolean;
+  final_output: string;
+  mcp_context?: any;
+  validation_issues?: any[];
+  corrections_made?: string[];
+  iterations?: number;
+  competitor_insights?: any;
+  component_suggestions?: any[];
+  metadata?: any;
+  // Legacy fields for compatibility
+  output?: string;
+  mcp_context_used?: boolean;
   scraped_data_summary?: {
     pages_analyzed: number;
     current_style: string;
@@ -40,11 +57,11 @@ export interface MCPAIResponse {
     performance_issues: number;
   };
   components_used?: string[];
-  recommendations: string[];
-  model_used: string;
+  recommendations?: string[];
+  model_used?: string;
   tokens_used?: number;
-  generation_time: number;
-  status: string;
+  generation_time?: number;
+  status?: string;
 }
 
 export interface MCPStatus {
@@ -81,7 +98,7 @@ class MCPService {
   async generateWithMCP(request: MCPAIRequest): Promise<MCPAIResponse> {
     try {
       const response = await this.axiosInstance.post<MCPAIResponse>(
-        '/mcp-ai-agent/generate-with-mcp',
+        '/mcp-enhanced/generate-enhanced',
         request
       );
       return response.data;
@@ -96,7 +113,7 @@ class MCPService {
    */
   async getMCPStatus(): Promise<MCPStatus> {
     try {
-      const response = await this.axiosInstance.get<MCPStatus>('/mcp-ai-agent/mcp-status');
+      const response = await this.axiosInstance.get<MCPStatus>('/mcp-enhanced/test-mcp-integration');
       return response.data;
     } catch (error) {
       console.error('Failed to get MCP status:', error);
@@ -118,15 +135,17 @@ class MCPService {
     } = {}
   ): Promise<MCPAIResponse> {
     const request: MCPAIRequest = {
-      business_info: businessInfo,
-      existing_website_url: options.existingWebsiteUrl,
-      generation_type: 'website',
+      business_info: {
+        ...businessInfo,
+        location: businessInfo.city && businessInfo.state ? `${businessInfo.city}, ${businessInfo.state}` : businessInfo.location
+      },
+      competitor_urls: options.existingWebsiteUrl ? [options.existingWebsiteUrl] : [],
+      enable_mcp: options.useMCP !== false,
+      enable_self_reflection: true,
+      enable_self_correction: true,
+      max_iterations: 3,
       framework: options.framework || 'html',
-      style: options.style || 'modern',
-      component_requirements: options.components,
-      use_mcp_context: options.useMCP !== false, // Default to true
-      temperature: 0.8,
-      max_tokens: 6000,
+      style_preference: options.style || 'modern',
     };
 
     return this.generateWithMCP(request);

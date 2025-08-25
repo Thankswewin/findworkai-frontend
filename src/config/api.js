@@ -69,8 +69,8 @@ const endpoints = {
   
   // AI Agent endpoints - Updated to match backend MCP Enhanced endpoints
   aiAgent: {
-    generate: '/api/v1/mcp-enhanced/generate',  // Updated to MCP enhanced endpoint
-    test: '/api/v1/mcp-enhanced/test',
+    generate: '/api/v1/mcp-enhanced/generate-enhanced',  // Updated to correct MCP enhanced endpoint
+    test: '/api/v1/mcp-enhanced/test-mcp-integration',
     analyze: '/api/v1/analyze-business/analyze',  // Updated to correct endpoint
   },
   
