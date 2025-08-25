@@ -234,20 +234,19 @@ export function BusinessAIAgentBuilder({
         
         setCurrentStep('Generating with AI... This may take a moment...')
         
-        const response = await fetch(`${backendUrl}/mcp-enhanced/generate`, {
+        const response = await fetch(`${backendUrl}/mcp-enhanced/generate-enhanced`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            prompt: prompt,
             business_info: businessInfo,
-            type: agentType,
-            temperature: 0.8,
-            max_tokens: 4000,
-            agent_name: config.name,
-            tone: 'professional',
-            service_type: agentType
+            enable_mcp: true,
+            enable_self_reflection: true,
+            enable_self_correction: true,
+            max_iterations: 3,
+            framework: 'html',
+            style_preference: 'modern'
           })
         })
 
@@ -257,7 +256,7 @@ export function BusinessAIAgentBuilder({
         }
 
         const data = await response.json()
-        const aiContent = data.output || data.response || ''
+        const aiContent = data.final_output || data.output || data.response || ''
         
         console.log('✅ Received REAL AI response!')
         
@@ -369,19 +368,24 @@ export function BusinessAIAgentBuilder({
           prompt = `Generate ${type} for ${businessData.name}, a ${businessData.category} business.`
       }
       
-      const response = await fetch(`${backendUrl}/mcp-enhanced/generate`, {
+      const response = await fetch(`${backendUrl}/mcp-enhanced/generate-enhanced`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt: prompt,
-          business_input: `Name: ${businessData.name}\nCategory: ${businessData.category}\nLocation: ${businessData.location}\nRating: ${businessData.rating}`,
-          temperature: 0.8,
-          max_tokens: 4000,
-          agent_name: 'Website Builder Agent',
-          tone: 'professional',
-          service_type: type
+          business_info: {
+            name: businessData.name,
+            business_category: businessData.category,
+            location: businessData.location,
+            rating: businessData.rating
+          },
+          enable_mcp: true,
+          enable_self_reflection: true,
+          enable_self_correction: true,
+          max_iterations: 3,
+          framework: 'html',
+          style_preference: 'modern'
         })
       })
 
@@ -390,7 +394,7 @@ export function BusinessAIAgentBuilder({
       }
 
       const data = await response.json()
-      const aiContent = data.output || data.response || data
+      const aiContent = data.final_output || data.output || data.response || data
       
       console.log('✅ Received REAL AI response!')
       
