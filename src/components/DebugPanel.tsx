@@ -26,11 +26,14 @@ export function DebugPanel() {
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [filter, setFilter] = useState<LogLevel | 'ALL'>('ALL')
   const [copied, setCopied] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+    
     // Check if we should show debug panel
     const isDev = process.env.NODE_ENV === 'development'
-    const hasDebugParam = typeof window !== 'undefined' && window.location.search.includes('debug=true')
+    const hasDebugParam = window.location.search.includes('debug=true')
     
     if (!isDev && !hasDebugParam) return
 
@@ -43,16 +46,16 @@ export function DebugPanel() {
     return () => clearInterval(interval)
   }, [])
 
-  // Check if we should render the debug panel
-  const isDev = process.env.NODE_ENV === 'development'
-  const hasDebugParam = typeof window !== 'undefined' && window.location.search.includes('debug=true')
-  
-  if (!isDev && !hasDebugParam) {
+  // Don't render until mounted (prevents hydration mismatch)
+  if (!mounted) {
     return null
   }
+
+  // Check if we should render the debug panel
+  const isDev = process.env.NODE_ENV === 'development'
+  const hasDebugParam = window.location.search.includes('debug=true')
   
-  // Don't render on server side
-  if (typeof window === 'undefined') {
+  if (!isDev && !hasDebugParam) {
     return null
   }
 

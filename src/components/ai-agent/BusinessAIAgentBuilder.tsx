@@ -240,8 +240,26 @@ export function BusinessAIAgentBuilder({
         setCurrentStep('Waiting for AI to generate content...')
         
         if (!response.ok) {
-          const error = await response.json()
-          throw new Error(error.detail || 'AI service temporarily unavailable')
+          let errorMessage = 'AI service temporarily unavailable'
+          try {
+            const error = await response.json()
+            if (error.detail) {
+              errorMessage = error.detail
+            }
+          } catch (e) {
+            // If we can't parse the error, use default message
+          }
+          
+          // More helpful error message for 500 errors
+          if (response.status === 500) {
+            errorMessage = 'The backend AI service is currently unavailable. This might be because:\n' +
+                          '1. The AI API keys are not configured on the backend\n' +
+                          '2. The backend service is starting up (can take 30-60 seconds)\n' +
+                          '3. The AI service rate limit has been reached\n\n' +
+                          'Please try again in a moment or contact support.'
+          }
+          
+          throw new Error(errorMessage)
         }
 
         setProgress(80)
@@ -288,10 +306,28 @@ export function BusinessAIAgentBuilder({
         setShowViewer(true)
       }, 500)
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Generation error:', error)
-      toast.error('Failed to build solution. Please try again.')
-      setCurrentStep('Error occurred during building')
+      
+      // Show more informative error message
+      const errorMessage = error.message || 'Failed to build solution. Please try again.'
+      
+      // Split multiline errors for toast notification
+      if (errorMessage.includes('\n')) {
+        const lines = errorMessage.split('\n')
+        toast.error(lines[0], {
+          duration: 6000,
+          style: {
+            maxWidth: '500px'
+          }
+        })
+        // Show additional details in console
+        console.log('Error details:', lines.join('\n'))
+      } else {
+        toast.error(errorMessage)
+      }
+      
+      setCurrentStep('Error: Backend service unavailable')
     } finally {
       setIsBuilding(false)
     }

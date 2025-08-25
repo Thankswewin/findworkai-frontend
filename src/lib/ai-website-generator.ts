@@ -4,18 +4,20 @@
 import { generateWithOpenRouter } from './openrouter'
 import { generateBusinessSpecificWebsite } from './business-templates'
 
-// Model configurations with their strengths
+// Model configurations with their strengths - Real OpenRouter models
 const AI_MODELS = {
-  // Primary models
-  CLAUDE_OPUS: 'anthropic/claude-opus-4.1',      // Best for complex structure and logic
-  CLAUDE_SONNET: 'anthropic/claude-sonnet-4',    // Great for modern code patterns
-  GEMINI_PRO: 'google/gemini-2.5-pro',          // Excellent for creative design
-  GEMINI_FLASH: 'google/gemini-2.5-flash',      // Fast iterations and refinements
+  // Latest models available on OpenRouter
+  CLAUDE_OPUS_4_1: 'anthropic/claude-opus-4.1',      // Best for complex structure and logic
+  CLAUDE_SONNET_4: 'anthropic/claude-sonnet-4',       // Great for modern code patterns
+  GEMINI_2_5_PRO: 'google/gemini-2.5-pro',           // Excellent for creative design
+  GEMINI_2_5_FLASH: 'google/gemini-2.5-flash',       // Fast iterations and refinements
+  GPT_4_1: 'openai/gpt-4.1',                         // Best for context understanding
+  GPT_5: 'openai/gpt-5',                             // Most advanced model
   
   // Fallback models
-  SONNET_3_5: 'anthropic/claude-3-5-sonnet',    // Fallback for code generation
-  GEMINI_2_PRO: 'google/gemini-2.0-pro',        // Fallback for design
-  GPT_4O: 'openai/gpt-4o',                      // Fallback for context understanding
+  CLAUDE_3_5_SONNET: 'anthropic/claude-3.5-sonnet',  // Fallback for code generation
+  GEMINI_PRO_1_5: 'google/gemini-pro-1.5',           // Fallback for design
+  GPT_4O: 'openai/gpt-4o'                            // Fallback for context understanding
 }
 
 export interface BusinessData {
@@ -132,7 +134,7 @@ async function generateWebsiteStructure(
   try {
     const response = await generateWithOpenRouter(
       prompt,
-      AI_MODELS.CLAUDE_OPUS,
+      AI_MODELS.CLAUDE_OPUS_4_1,
       apiKey
     )
     return JSON.parse(response)
@@ -172,15 +174,15 @@ async function generateDesignSystem(
   try {
     const response = await generateWithOpenRouter(
       prompt,
-      AI_MODELS.GEMINI_PRO,
+      AI_MODELS.GEMINI_2_5_PRO,
       apiKey
     )
     return JSON.parse(response)
   } catch (error) {
-    // Fallback to Gemini 2.0 Pro
+    // Fallback to GPT-4.1
     const response = await generateWithOpenRouter(
       prompt,
-      AI_MODELS.GEMINI_2_PRO,
+      AI_MODELS.GPT_4_1,
       apiKey
     )
     return JSON.parse(response)
@@ -219,15 +221,15 @@ async function generateComponents(
   try {
     const response = await generateWithOpenRouter(
       prompt,
-      AI_MODELS.CLAUDE_SONNET,
+      AI_MODELS.CLAUDE_SONNET_4,
       apiKey
     )
     return parseComponentResponse(response)
   } catch (error) {
-    // Fallback to Sonnet 3.5
+    // Fallback to GPT-4o
     const response = await generateWithOpenRouter(
       prompt,
-      AI_MODELS.SONNET_3_5,
+      AI_MODELS.GPT_4O,
       apiKey
     )
     return parseComponentResponse(response)
@@ -254,7 +256,7 @@ async function optimizeWebsite(
   try {
     const response = await generateWithOpenRouter(
       prompt,
-      AI_MODELS.GEMINI_FLASH,
+      AI_MODELS.GEMINI_2_5_FLASH,
       apiKey
     )
     return parseComponentResponse(response)

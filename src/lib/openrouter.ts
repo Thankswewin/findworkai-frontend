@@ -73,7 +73,7 @@ export function selectModelForTask(task: 'structure' | 'design' | 'code' | 'cont
     structure: 'anthropic/claude-opus-4.1',      // Best for complex planning
     design: 'google/gemini-2.5-pro',            // Best for creative design
     code: 'anthropic/claude-sonnet-4',          // Best for code generation
-    content: 'google/gemini-2.5-pro',           // Best for content creation
+    content: 'openai/gpt-4.1',                  // Best for content creation
     optimization: 'google/gemini-2.5-flash'     // Best for quick optimizations
   }
   
@@ -207,48 +207,56 @@ Please provide a clear, actionable response.`
   return prompt
 }
 
-// Export model configurations
+// Export model configurations - Real OpenRouter models
 export const AI_MODELS = {
-  // Primary models from OpenRouter
-  CLAUDE_OPUS_4_1: 'anthropic/claude-opus-4.1',
-  CLAUDE_SONNET_4: 'anthropic/claude-sonnet-4',
-  GEMINI_2_5_PRO: 'google/gemini-2.5-pro',
-  GEMINI_2_5_FLASH: 'google/gemini-2.5-flash',
-  
-  // Fallback models
-  CLAUDE_3_5_SONNET: 'anthropic/claude-3-5-sonnet-20241022',
-  GEMINI_2_0_PRO: 'google/gemini-2.0-pro-exp',
+  // Latest OpenAI models
+  GPT_5: 'openai/gpt-5',
+  GPT_4_1: 'openai/gpt-4.1',
   GPT_4O: 'openai/gpt-4o',
   GPT_4O_MINI: 'openai/gpt-4o-mini',
   
-  // Specialized models
+  // Latest Anthropic models
+  CLAUDE_OPUS_4_1: 'anthropic/claude-opus-4.1',
+  CLAUDE_OPUS_4: 'anthropic/claude-opus-4',
+  CLAUDE_SONNET_4: 'anthropic/claude-sonnet-4',
+  CLAUDE_3_5_SONNET: 'anthropic/claude-3.5-sonnet',
+  CLAUDE_3_5_HAIKU: 'anthropic/claude-3.5-haiku',
+  CLAUDE_3_OPUS: 'anthropic/claude-3-opus',
+  
+  // Google models
+  GEMINI_2_5_PRO: 'google/gemini-2.5-pro',
+  GEMINI_2_5_FLASH: 'google/gemini-2.5-flash',
+  GEMINI_PRO_1_5: 'google/gemini-pro-1.5',
+  GEMINI_FLASH_1_5: 'google/gemini-flash-1.5',
+  
+  // Other leading models
   LLAMA_3_1_405B: 'meta-llama/llama-3.1-405b-instruct',
-  MISTRAL_LARGE: 'mistralai/mistral-large',
-  QWEN_2_5_72B: 'qwen/qwen-2.5-72b-instruct'
+  MIXTRAL_8X7B: 'mistralai/mixtral-8x7b-instruct',
+  DEEPSEEK_CODER: 'deepseek/deepseek-coder-33b-instruct'
 }
 
 // Model capabilities and pricing (for reference)
 export const MODEL_INFO = {
-  [AI_MODELS.CLAUDE_OPUS_4_1]: {
-    name: 'Claude Opus 4.1',
+  [AI_MODELS.CLAUDE_3_OPUS]: {
+    name: 'Claude 3 Opus',
     strengths: ['Complex reasoning', 'Long context', 'Structured output'],
     context: 200000,
     bestFor: 'architecture'
   },
-  [AI_MODELS.CLAUDE_SONNET_4]: {
-    name: 'Claude Sonnet 4',
+  [AI_MODELS.CLAUDE_3_5_SONNET]: {
+    name: 'Claude 3.5 Sonnet',
     strengths: ['Code generation', 'Fast response', 'Modern patterns'],
     context: 200000,
     bestFor: 'coding'
   },
-  [AI_MODELS.GEMINI_2_5_PRO]: {
-    name: 'Gemini 2.5 Pro',
+  [AI_MODELS.GEMINI_PRO_1_5]: {
+    name: 'Gemini Pro 1.5',
     strengths: ['Creative design', 'Visual understanding', 'Innovation'],
-    context: 2000000,
+    context: 1000000,
     bestFor: 'design'
   },
-  [AI_MODELS.GEMINI_2_5_FLASH]: {
-    name: 'Gemini 2.5 Flash',
+  [AI_MODELS.GEMINI_FLASH_1_5]: {
+    name: 'Gemini Flash 1.5',
     strengths: ['Speed', 'Optimization', 'Quick iterations'],
     context: 1000000,
     bestFor: 'optimization'

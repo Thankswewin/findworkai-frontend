@@ -78,16 +78,30 @@ export function AIAgentDashboard({ business, apiKey, model }: AIAgentDashboardPr
         siteName: 'FindWorkAI'
       })
       
-      // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 10, 90))
-      }, 1000)
-
+      // Realistic staged progress while awaiting real work
       setCurrentStep('Analyzing business opportunity...')
-      
-      const result = await agent.processBusinessAutomatically(business)
-      
-      clearInterval(progressInterval)
+      setProgress(10)
+
+      const resultPromise = agent.processBusinessAutomatically(business)
+
+      const stages = [
+        { p: 25, msg: 'Planning solution...' },
+        { p: 45, msg: 'Generating artifacts...' },
+        { p: 70, msg: 'Optimizing results...' },
+        { p: 85, msg: 'Finalizing...' }
+      ]
+      let i = 0
+      const stageTimer = setInterval(() => {
+        if (i < stages.length) {
+          setProgress(stages[i].p)
+          setCurrentStep(stages[i].msg)
+          i++
+        }
+      }, 1200)
+
+      const result = await resultPromise
+
+      clearInterval(stageTimer)
       setProgress(100)
       
       setArtifacts(result.generatedArtifacts)

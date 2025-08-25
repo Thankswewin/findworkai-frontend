@@ -463,7 +463,7 @@ export class BusinessIntelligenceAgent {
   private async callOpenAI(prompt: string): Promise<any> {
     try {
       // Use our backend API which has the REAL AI service!
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend-1.onrender.com/api/v1'
       
       console.log('🚀 Calling backend AI service at:', backendUrl)
       
@@ -559,33 +559,31 @@ Please try again in a moment. If the issue persists, contact support.
   }
 }
 
-// Available models on OpenRouter
+// Available models on OpenRouter - verified real models
 export const AVAILABLE_MODELS = {
-  // OpenAI Models
-  'gpt-4-turbo': 'openai/gpt-4-turbo-preview',
-  'gpt-4': 'openai/gpt-4',
-  'gpt-3.5-turbo': 'openai/gpt-3.5-turbo',
+  // OpenAI Models (latest)
+  'gpt-5': 'openai/gpt-5',
+  'gpt-4.1': 'openai/gpt-4.1',
+  'gpt-4o': 'openai/gpt-4o',
+  'gpt-4o-mini': 'openai/gpt-4o-mini',
   
-  // Anthropic Models
+  // Anthropic Models (latest)
+  'claude-opus-4.1': 'anthropic/claude-opus-4.1',
+  'claude-opus-4': 'anthropic/claude-opus-4',
+  'claude-sonnet-4': 'anthropic/claude-sonnet-4',
+  'claude-3.5-sonnet': 'anthropic/claude-3.5-sonnet',
+  'claude-3.5-haiku': 'anthropic/claude-3.5-haiku',
   'claude-3-opus': 'anthropic/claude-3-opus',
-  'claude-3-sonnet': 'anthropic/claude-3-sonnet',
-  'claude-3-haiku': 'anthropic/claude-3-haiku',
-  'claude-2': 'anthropic/claude-2',
   
   // Google Models
-  'gemini-pro': 'google/gemini-pro',
-  'palm-2': 'google/palm-2-chat-bison',
+  'gemini-2.5-pro': 'google/gemini-2.5-pro',
+  'gemini-2.5-flash': 'google/gemini-2.5-flash',
+  'gemini-pro-1.5': 'google/gemini-pro-1.5',
+  'gemini-flash-1.5': 'google/gemini-flash-1.5',
   
-  // Meta Models
-  'llama-2-70b': 'meta-llama/llama-2-70b-chat',
-  'codellama-34b': 'meta-llama/codellama-34b-instruct',
-  
-  // Mistral Models
+  // Other top models
+  'llama-3.1-405b': 'meta-llama/llama-3.1-405b-instruct',
   'mixtral-8x7b': 'mistralai/mixtral-8x7b-instruct',
-  'mistral-7b': 'mistralai/mistral-7b-instruct',
-  
-  // Others
-  'perplexity': 'perplexity/pplx-70b-online',
   'deepseek-coder': 'deepseek/deepseek-coder-33b-instruct'
 }
 
