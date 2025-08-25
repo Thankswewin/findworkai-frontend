@@ -50,7 +50,7 @@ const endpoints = {
   
   // Business endpoints
   businesses: {
-    search: '/api/v1/search/businesses',
+    search: '/api/v1/businesses/search',  // Fixed endpoint path
     analyze: '/api/v1/analysis/analyze',
     details: (id) => `/api/v1/businesses/${id}`,
     export: '/api/v1/export/leads',
@@ -67,11 +67,11 @@ const endpoints = {
     addLeads: (id) => `/api/v1/campaigns/${id}/add-leads`,
   },
   
-  // AI Agent endpoints
+  // AI Agent endpoints - Updated to match backend MCP Enhanced endpoints
   aiAgent: {
-    generate: '/api/v1/ai-agent/generate',
-    test: '/api/v1/ai-agent/test',
-    analyze: '/api/v1/ai-agent/analyze-business',
+    generate: '/api/v1/mcp-enhanced/generate',  // Updated to MCP enhanced endpoint
+    test: '/api/v1/mcp-enhanced/test',
+    analyze: '/api/v1/analyze-business/analyze',  // Updated to correct endpoint
   },
   
   // Analytics endpoints
@@ -86,6 +86,12 @@ const endpoints = {
     businesses: '/api/v1/export/leads',
     campaigns: '/api/v1/export/campaigns',
     analytics: '/api/v1/export/analytics',
+  },
+  
+  // Category endpoints
+  categories: {
+    search: '/api/v1/categories/search',
+    analyzePhotos: '/api/v1/categories/analyze-photos',
   },
 };
 
