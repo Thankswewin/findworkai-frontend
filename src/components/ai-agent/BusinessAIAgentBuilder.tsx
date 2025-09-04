@@ -222,7 +222,7 @@ export function BusinessAIAgentBuilder({
         
         // Create AbortController for timeout management
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 180000) // 3 minutes
+        const timeoutId = setTimeout(() => controller.abort(), 600000) // 10 minutes - increased for complex AI generation
         
         const response = await fetch(`${backendUrl}/mcp-enhanced/generate-enhanced`, {
           method: 'POST',
@@ -234,7 +234,7 @@ export function BusinessAIAgentBuilder({
             enable_mcp: true,
             enable_self_reflection: true,
             enable_self_correction: true,
-            max_iterations: 3,
+            max_iterations: 1,
             framework: 'html',
             style_preference: 'modern'
           }),
