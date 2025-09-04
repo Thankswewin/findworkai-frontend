@@ -37,6 +37,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { GeneratedArtifact } from '@/lib/ai-agent'
 import { Textarea } from '@/components/ui/textarea'
 import toast from 'react-hot-toast'
+import { IPhoneFrame, AnimatedIPhoneFrame } from '@/components/ui/iphone-frame'
 
 interface ArtifactViewerProps {
   artifact: GeneratedArtifact
@@ -709,24 +710,41 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
           
           <div 
             className="pt-10 h-full flex items-center justify-center overflow-auto"
-            style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top center' }}
+            style={{ transform: viewMode === 'mobile' ? `scale(${zoom / 100})` : `scale(${zoom / 100})`, transformOrigin: 'top center' }}
           >
-            <div 
-              className="bg-white shadow-2xl transition-all duration-300"
-              style={{
-                width: deviceSizes[viewMode].width,
-                height: viewMode === 'desktop' ? 'calc(100% - 2.5rem)' : deviceSizes[viewMode].height,
-                maxWidth: '100%',
-                minHeight: viewMode === 'desktop' ? '600px' : 'auto'
-              }}
-            >
-              <iframe
-                ref={iframeRef}
-                className="w-full h-full border-0"
-                title="Preview"
-                sandbox="allow-scripts allow-same-origin"
-              />
-            </div>
+            {viewMode === 'mobile' ? (
+              <AnimatedIPhoneFrame
+                variant="pro"
+                color="black"
+                showStatusBar={true}
+                showDynamicIsland={true}
+                className="transition-all duration-300"
+              >
+                <iframe
+                  ref={iframeRef}
+                  className="w-full h-full border-0 bg-white"
+                  title="Preview"
+                  sandbox="allow-scripts allow-same-origin"
+                />
+              </AnimatedIPhoneFrame>
+            ) : (
+              <div 
+                className="bg-white shadow-2xl transition-all duration-300"
+                style={{
+                  width: deviceSizes[viewMode].width,
+                  height: viewMode === 'desktop' ? 'calc(100% - 2.5rem)' : deviceSizes[viewMode].height,
+                  maxWidth: '100%',
+                  minHeight: viewMode === 'desktop' ? '600px' : 'auto'
+                }}
+              >
+                <iframe
+                  ref={iframeRef}
+                  className="w-full h-full border-0"
+                  title="Preview"
+                  sandbox="allow-scripts allow-same-origin"
+                />
+              </div>
+            )}
           </div>
         </div>
       )
