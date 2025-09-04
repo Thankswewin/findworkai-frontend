@@ -7,7 +7,7 @@ import { z } from 'zod'
 
 const envSchema = z.object({
   // Public environment variables (exposed to client)
-  NEXT_PUBLIC_API_URL: z.string().url().default('http://localhost:8000/api/v1'),
+  NEXT_PUBLIC_API_URL: z.string().url().default('https://findworkai-backend-1.onrender.com/api/v1'),
   NEXT_PUBLIC_GOOGLE_MAPS_KEY: z.string().optional(),
   NEXT_PUBLIC_APP_NAME: z.string().default('FindWorkAI'),
   NEXT_PUBLIC_APP_VERSION: z.string().default('1.0.0'),
@@ -16,7 +16,7 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().min(1, 'OpenAI/OpenRouter API key is required').optional(),
   NEXT_PUBLIC_OPENROUTER_API_KEY: z.string().optional(),
   NEXTAUTH_SECRET: z.string().min(32, 'NextAuth secret must be at least 32 characters').optional(),
-  NEXTAUTH_URL: z.string().url().default('http://localhost:3000'),
+  NEXTAUTH_URL: z.string().url().default('https://findworkai.vercel.app'),
   DATABASE_URL: z.string().optional(),
   
   // Node environment

@@ -54,7 +54,7 @@ export class BusinessIntelligenceAgent {
   constructor(apiKey: string, options?: { model?: string; siteUrl?: string; siteName?: string }) {
     this.apiKey = apiKey
     this.model = options?.model || 'openai/gpt-4-turbo-preview' // Default to GPT-4 Turbo
-    this.siteUrl = options?.siteUrl || 'http://localhost:3000'
+    this.siteUrl = options?.siteUrl || 'https://findworkai.vercel.app'
     this.siteName = options?.siteName || 'FindWorkAI'
     this.registerDefaultCapabilities()
   }

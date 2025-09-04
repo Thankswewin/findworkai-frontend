@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Call backend API to validate credentials
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/auth/login`, {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend-1.onrender.com'}/api/v1/auth/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
