@@ -98,7 +98,7 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
     }
   }, [artifact])
 
-  // Update iframe content when code changes
+  // Update iframe content when code changes or view mode switches
   useEffect(() => {
     if (iframeRef.current && (artifact.type === 'website' || artifact.type === 'landing-page' || artifact.type === 'email' || artifact.type === 'marketing' || artifact.type === 'content')) {
       const doc = iframeRef.current.contentDocument
@@ -108,7 +108,7 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
         doc.close()
       }
     }
-  }, [code, editedCode, isEditing, artifact.type])
+  }, [code, editedCode, isEditing, artifact.type, viewMode])
 
   const generateHTMLFromObject = (content: any): string => {
     // If content is already HTML string, return it
