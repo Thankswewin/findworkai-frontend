@@ -30,6 +30,11 @@ export function Footer() {
             <h4 className="font-semibold mb-3">Platform</h4>
             <ul className="space-y-2 text-sm">
               <li>
+                <Link href="/pricing" className="text-muted-foreground hover:text-primary transition-colors">
+                  Pricing
+                </Link>
+              </li>
+              <li>
                 <Link href="/dashboard" className="text-muted-foreground hover:text-primary transition-colors">
                   Dashboard
                 </Link>
@@ -101,20 +106,35 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} FindWorkAI. All rights reserved.</p>
-          <p className="mt-2">
-            Developed by{' '}
-            <a 
-              href="https://www.instagram.com/pheelymon.oftan" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="font-semibold text-primary hover:underline"
-            >
-              Pheelymon
-            </a>
-            {' '}| AI-Powered Business Solutions
-          </p>
+        <div className="mt-8 pt-8 border-t">
+          <div className="flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground">
+            <p>© {new Date().getFullYear()} FindWorkAI. All rights reserved.</p>
+            <div className="flex flex-wrap items-center gap-4 mt-2 md:mt-0">
+              <Link href="/terms" className="hover:text-primary transition-colors">
+                Terms of Service
+              </Link>
+              <Link href="/privacy" className="hover:text-primary transition-colors">
+                Privacy Policy
+              </Link>
+              <Link href="/refund-policy" className="hover:text-primary transition-colors">
+                Refund Policy
+              </Link>
+            </div>
+          </div>
+          <div className="text-center text-sm text-muted-foreground mt-4">
+            <p>
+              Developed by{' '}
+              <a
+                href="https://www.instagram.com/pheelymon.oftan"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-primary hover:underline"
+              >
+                Pheelymon
+              </a>
+              {' '}| AI-Powered Business Solutions
+            </p>
+          </div>
         </div>
       </div>
     </footer>

@@ -264,8 +264,9 @@ export default function RegisterPage() {
           </div>
           <div className="text-xs text-center text-muted-foreground">
             By creating an account, you agree to our{' '}
-            <Link href="/terms" className="hover:underline">Terms</Link> and{' '}
-            <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
+            <Link href="/terms" className="hover:underline">Terms</Link>,{' '}
+            <Link href="/privacy" className="hover:underline">Privacy Policy</Link>, and{' '}
+            <Link href="/refund-policy" className="hover:underline">Refund Policy</Link>
           </div>
           <div className="text-xs text-center text-muted-foreground">
             Created by{' '}

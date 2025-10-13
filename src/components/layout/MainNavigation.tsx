@@ -155,6 +155,12 @@ export function MainNavigation() {
 
             {/* User Menu */}
             <div className="flex items-center gap-4">
+              <Link href="/pricing">
+                <Button variant="outline" size="sm">
+                  <TrendingUp className="h-4 w-4 mr-2" />
+                  Pricing
+                </Button>
+              </Link>
               <Button variant="outline" size="sm">
                 <Users className="h-4 w-4 mr-2" />
                 Upgrade
@@ -218,6 +224,19 @@ export function MainNavigation() {
                       </Link>
                     )
                   })}
+
+                  {/* Pricing Link */}
+                  <Link
+                    href="/pricing"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
+                  >
+                    <TrendingUp className="h-4 w-4" />
+                    <div className="flex-1">
+                      <div>Pricing</div>
+                      <div className="text-xs opacity-60">View plans and pricing</div>
+                    </div>
+                  </Link>
                 </div>
 
                 {/* Upgrade Section */}
