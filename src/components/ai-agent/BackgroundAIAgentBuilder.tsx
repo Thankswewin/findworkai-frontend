@@ -204,6 +204,12 @@ export function BackgroundAIAgentBuilder({
       abortControllerRef.current = new AbortController()
       const controller = abortControllerRef.current
 
+      // Set timeout for the entire request (15 minutes)
+      const timeoutId = setTimeout(() => {
+        controller.abort()
+        failTask(buildTask, 'Request timeout: AI service took too long to respond')
+      }, 900000)
+
       const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend-1.onrender.com/api/v1'
 
       const businessInfo = {
@@ -240,6 +246,7 @@ export function BackgroundAIAgentBuilder({
       })
 
       if (controller.signal.aborted) {
+        clearTimeout(timeoutId)
         failTask(buildTask, 'Build was cancelled')
         return
       }
@@ -290,12 +297,23 @@ export function BackgroundAIAgentBuilder({
         }
       }
 
+      clearTimeout(timeoutId)
       completeTask(buildTask, artifact)
 
     } catch (error: any) {
+      clearTimeout(timeoutId)
       console.error('Build error:', error)
-      failTask(buildTask, error.message || 'Build failed. Please try again.')
-      toast.error(error.message || 'Build failed')
+
+      // Handle specific error types
+      let errorMessage = 'Build failed. Please try again.'
+      if (error.name === 'AbortError') {
+        errorMessage = 'Build was cancelled or timed out'
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+
+      failTask(buildTask, errorMessage)
+      toast.error(errorMessage)
     } finally {
       buildingRef.current = false
       abortControllerRef.current = null
