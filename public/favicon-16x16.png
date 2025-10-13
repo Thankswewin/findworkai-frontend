@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none">
+  <rect width="16" height="16" rx="3" fill="url(#gradient)"/>
+  <path d="M8 4L6 6L8 8L10 6L8 4Z" fill="white" opacity="0.9"/>
+  <path d="M5 7L3 9L5 11L7 9L5 7Z" fill="white" opacity="0.7"/>
+  <path d="M11 7L9 9L11 11L13 9L11 7Z" fill="white" opacity="0.7"/>
+  <path d="M8 9L7 10L8 11L9 10L8 9Z" fill="white" opacity="0.5"/>
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="16" y2="16">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#1F2937"/>
+    </linearGradient>
+  </defs>
+</svg>
