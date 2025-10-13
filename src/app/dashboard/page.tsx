@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search, Building2, TrendingUp, Mail, Filter,
   Activity, ChevronRight, Info, Sparkles, MoreVertical,
-  Globe, Calendar, Users, BarChart, Target
+  Globe, Calendar, Users, BarChart, Target, Zap, Eye
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -38,6 +38,7 @@ import ErrorState from '@/components/error-state'
 import { searchBusinesses } from '@/lib/google-places'
 import analytics from '@/services/analytics'
 import { BusinessAIAgentBuilder } from '@/components/ai-agent/BusinessAIAgentBuilder'
+import { BackgroundAIAgentBuilder } from '@/components/ai-agent/BackgroundAIAgentBuilder'
 import { BusinessCategoryExplorer } from '@/components/business/BusinessCategoryExplorer'
 
 // Storage helper
@@ -74,6 +75,7 @@ export default function Dashboard() {
   const [showFilters, setShowFilters] = useState(false)
   const [showAIAgent, setShowAIAgent] = useState(false)
   const [aiAgentType, setAIAgentType] = useState<'website' | 'content' | 'marketing'>('website')
+  const [useBackgroundBuilder, setUseBackgroundBuilder] = useState(true) // Default to background builder
   const [showEmailDialog, setShowEmailDialog] = useState(false)
   const [generatedEmail, setGeneratedEmail] = useState<any>(null)
   const [showCategoryExplorer, setShowCategoryExplorer] = useState(true)
@@ -607,28 +609,60 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* AI Agent Builder Dialog */}
+      {/* AI Agent Builder Dialog - Choose between Background and Original */}
       {showAIAgent && selectedBusiness && (
         <Dialog open={showAIAgent} onOpenChange={setShowAIAgent}>
           <DialogContent className="max-w-7xl h-[90vh] flex flex-col p-0">
             <DialogHeader className="flex-shrink-0 p-6 pb-4">
-              <DialogTitle>
-                {aiAgentType === 'website' && 'AI Website Builder'}
-                {aiAgentType === 'content' && 'AI Content Generator'}
-                {aiAgentType === 'marketing' && 'AI Marketing Kit'}
-              </DialogTitle>
-              <DialogDescription>
-                Building AI-powered solutions for {selectedBusiness.name}
-              </DialogDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <DialogTitle>
+                    {aiAgentType === 'website' && 'AI Website Builder'}
+                    {aiAgentType === 'content' && 'AI Content Generator'}
+                    {aiAgentType === 'marketing' && 'AI Marketing Kit'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    Building AI-powered solutions for {selectedBusiness.name}
+                  </DialogDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={useBackgroundBuilder ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setUseBackgroundBuilder(true)}
+                  >
+                    <Zap className="h-4 w-4 mr-2" />
+                    Background Mode
+                  </Button>
+                  <Button
+                    variant={!useBackgroundBuilder ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setUseBackgroundBuilder(false)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Live Mode
+                  </Button>
+                </div>
+              </div>
             </DialogHeader>
             <div className="flex-1 overflow-y-auto p-6 pt-0">
-              <BusinessAIAgentBuilder
-                business={selectedBusiness}
-                agentType={aiAgentType}
-                isOpen={showAIAgent}
-                onClose={() => setShowAIAgent(false)}
-                apiKey={process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || ''}
-              />
+              {useBackgroundBuilder ? (
+                <BackgroundAIAgentBuilder
+                  business={selectedBusiness}
+                  agentType={aiAgentType}
+                  isOpen={showAIAgent}
+                  onClose={() => setShowAIAgent(false)}
+                  apiKey={process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || ''}
+                />
+              ) : (
+                <BusinessAIAgentBuilder
+                  business={selectedBusiness}
+                  agentType={aiAgentType}
+                  isOpen={showAIAgent}
+                  onClose={() => setShowAIAgent(false)}
+                  apiKey={process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || ''}
+                />
+              )}
             </div>
           </DialogContent>
         </Dialog>

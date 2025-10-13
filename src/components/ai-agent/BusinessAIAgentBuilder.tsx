@@ -26,6 +26,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ArtifactViewer } from './ArtifactViewer'
 import { GeneratedArtifact } from '@/lib/ai-agent'
 import { useArtifactStore } from '@/stores/artifactStore'
+import { useUserContentHistory } from '@/components/user/UserContentHistory'
 import toast from 'react-hot-toast'
 import { generateModernWebsite } from '@/lib/ai-website-generator'
 import { generateEnhancedBusinessWebsite } from '@/lib/enhanced-website-generator'
@@ -123,6 +124,7 @@ export function BusinessAIAgentBuilder({
   
   // Use artifact store for persistence
   const { saveArtifact, updateArtifact } = useArtifactStore()
+  const { addArtifact } = useUserContentHistory()
 
   const config = agentConfigs[agentType]
   const Icon = config.icon
@@ -305,6 +307,9 @@ export function BusinessAIAgentBuilder({
       
       // Save to store for persistence
       saveArtifact(artifact, business)
+
+      // Also save to user content history
+      addArtifact(business.id, artifact)
       
       toast.success(`${config.name} completed successfully!`)
       

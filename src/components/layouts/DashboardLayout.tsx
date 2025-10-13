@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   Search, Target, Send, Mail, Calendar, BarChart3, Brain,
   Settings, LogOut, Menu, X, Home, Sparkles, Bell, User,
-  FileDown, Filter, Zap, ChevronDown, Users
+  FileDown, Filter, Zap, ChevronDown, Users, FolderOpen
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -44,6 +44,13 @@ const mainNavigation: NavItem[] = [
     href: '/dashboard/search',
     icon: Search,
     description: 'Find new businesses'
+  },
+  {
+    title: 'Your Content',
+    href: '/dashboard/user-content',
+    icon: FolderOpen,
+    badge: 'NEW',
+    description: 'View your generated content'
   },
   {
     title: 'Lead Scoring',
