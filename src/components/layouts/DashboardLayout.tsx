@@ -21,6 +21,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useAuth } from '@/hooks/use-auth'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Footer } from './Footer'
 
 interface NavItem {
   title: string
@@ -115,6 +116,16 @@ const toolsNavigation: NavItem[] = [
   },
 ]
 
+const accountNavigation: NavItem[] = [
+  {
+    title: 'Pricing Plans',
+    href: '/pricing',
+    icon: Users,
+    description: 'View pricing and upgrade',
+    badge: 'PRO'
+  },
+]
+
 interface DashboardLayoutProps {
   children: React.ReactNode
 }
@@ -130,7 +141,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   // Combine all navigation items
-  const allNavigation = [...mainNavigation, ...analyticsNavigation, ...toolsNavigation]
+  const allNavigation = [...mainNavigation, ...analyticsNavigation, ...toolsNavigation, ...accountNavigation]
 
   // Show loading state while auth is loading
   if (isLoading) {
@@ -353,6 +364,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {children}
           </div>
         </main>
+
+        {/* Footer */}
+        <Footer />
       </div>
     </div>
   )

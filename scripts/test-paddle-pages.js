@@ -12,25 +12,25 @@ if (!fs.existsSync(screenshotDir)) {
 const paddlePages = [
   {
     name: 'Pricing',
-    url: 'http://localhost:3000/pricing',
+    url: 'http://localhost:3002/pricing',
     filename: 'pricing-page.png',
     description: 'Pricing page for Paddle.com verification'
   },
   {
     name: 'Terms of Service',
-    url: 'http://localhost:3000/terms',
+    url: 'http://localhost:3002/terms',
     filename: 'terms-page.png',
     description: 'Terms of Service page for Paddle.com verification'
   },
   {
     name: 'Privacy Policy',
-    url: 'http://localhost:3000/privacy',
+    url: 'http://localhost:3002/privacy',
     filename: 'privacy-page.png',
     description: 'Privacy Policy page for Paddle.com verification'
   },
   {
     name: 'Refund Policy',
-    url: 'http://localhost:3000/refund-policy',
+    url: 'http://localhost:3002/refund-policy',
     filename: 'refund-policy-page.png',
     description: 'Refund Policy page for Paddle.com verification'
   }
@@ -250,7 +250,7 @@ async function checkServer() {
     const http = require('http');
     const options = {
       hostname: 'localhost',
-      port: 3000,
+      port: 3002,
       path: '/pricing',
       method: 'GET',
       timeout: 5000
@@ -281,7 +281,7 @@ async function main() {
     const serverRunning = await checkServer();
 
     if (!serverRunning) {
-      console.log('❌ Development server is not running on http://localhost:3000');
+      console.log('❌ Development server is not running on http://localhost:3002');
       console.log('Please start the server with: npm run dev');
       process.exit(1);
     }
