@@ -105,10 +105,10 @@ export function MainNavigation() {
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-black">
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-black bg-clip-text text-transparent">
                 FindWorkAI
               </span>
             </div>
@@ -176,10 +176,10 @@ export function MainNavigation() {
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-black">
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-black bg-clip-text text-transparent">
                 FindWorkAI
               </span>
             </div>

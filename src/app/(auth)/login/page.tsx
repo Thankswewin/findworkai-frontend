@@ -75,11 +75,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
-            <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
+            <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-black">
               <Sparkles className="h-8 w-8 text-white" />
             </div>
           </div>

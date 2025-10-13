@@ -191,7 +191,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Logo */}
           <div className="flex h-16 items-center justify-between px-6 border-b">
             <Link href="/dashboard" className="flex items-center space-x-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-black">
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
               <div className="flex flex-col">
@@ -254,7 +254,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="w-full justify-start">
                   <div className="flex items-center space-x-3">
-                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-black flex items-center justify-center">
                       <User className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex-1 text-left">

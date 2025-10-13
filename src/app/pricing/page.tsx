@@ -15,7 +15,7 @@ export default function PricingPage() {
 
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-black bg-clip-text text-transparent">
             Simple, Transparent Pricing
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
@@ -64,7 +64,7 @@ export default function PricingPage() {
           </div>
 
           {/* Professional Plan - Popular */}
-          <div className="bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-2xl shadow-xl p-8 border-2 border-blue-500 relative transform scale-105">
+          <div className="bg-gradient-to-br from-blue-600 to-black text-white rounded-2xl shadow-xl p-8 border-2 border-blue-500 relative transform scale-105">
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
               <div className="bg-yellow-400 text-gray-900 px-4 py-1 rounded-full text-sm font-semibold flex items-center">
                 <Star className="w-4 h-4 mr-1" />
@@ -188,8 +188,8 @@ export default function PricingPage() {
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Headphones className="w-8 h-8 text-purple-600 dark:text-purple-300" />
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Headphones className="w-8 h-8 text-gray-600 dark:text-gray-300" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Expert Support</h3>
               <p className="text-gray-600 dark:text-gray-400">
@@ -235,7 +235,7 @@ export default function PricingPage() {
         </div>
 
         {/* CTA Section */}
-        <div className="text-center mt-16 p-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl text-white">
+        <div className="text-center mt-16 p-8 bg-gradient-to-r from-blue-600 to-black rounded-2xl text-white">
           <h2 className="text-3xl font-bold mb-4">Ready to grow your business?</h2>
           <p className="text-xl mb-8 text-blue-100">
             Join thousands of businesses already using FindWorkAI to discover opportunities.
