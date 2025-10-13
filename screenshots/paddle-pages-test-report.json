@@ -1,0 +1,51 @@
+[
+  {
+    "name": "Pricing",
+    "url": "http://localhost:3000/pricing",
+    "status": "ERROR",
+    "title": "FindWorkAI - AI-Powered Business Discovery Platform",
+    "dimensions": {
+      "width": 1920,
+      "height": 1940
+    },
+    "screenshot": "C:\\Users\\ronda\\Projects\\findworkai\\frontend\\screenshots\\pricing-page.png",
+    "hasRequiredContent": true,
+    "contentCheck": "Contains pricing tiers and plans",
+    "loadTime": "2025-10-13T08:40:44.294Z"
+  },
+  {
+    "name": "Terms of Service",
+    "url": "http://localhost:3000/terms",
+    "status": "ERROR",
+    "error": "net::ERR_ABORTED at http://localhost:3000/terms",
+    "loadTime": "2025-10-13T08:40:46.162Z"
+  },
+  {
+    "name": "Privacy Policy",
+    "url": "http://localhost:3000/privacy",
+    "status": "ERROR",
+    "title": "FindWorkAI - AI-Powered Business Discovery Platform",
+    "dimensions": {
+      "width": 1920,
+      "height": 2300
+    },
+    "screenshot": "C:\\Users\\ronda\\Projects\\findworkai\\frontend\\screenshots\\privacy-page.png",
+    "hasRequiredContent": true,
+    "contentCheck": "Contains privacy policy content",
+    "loadTime": "2025-10-13T08:40:50.840Z"
+  },
+  {
+    "name": "Refund Policy",
+    "url": "http://localhost:3000/refund-policy",
+    "status": "ERROR",
+    "title": "FindWorkAI - AI-Powered Business Discovery Platform",
+    "dimensions": {
+      "width": 1920,
+      "height": 1920
+    },
+    "screenshot": "C:\\Users\\ronda\\Projects\\findworkai\\frontend\\screenshots\\refund-policy-page.png",
+    "hasRequiredContent": true,
+    "contentCheck": "Contains refund policy and money back guarantee",
+    "loadTime": "2025-10-13T08:40:55.388Z"
+  }
+]
