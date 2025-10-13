@@ -627,7 +627,7 @@ export default function Dashboard() {
                 agentType={aiAgentType}
                 isOpen={showAIAgent}
                 onClose={() => setShowAIAgent(false)}
-                apiKey="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"
+                apiKey={process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || ''}
               />
             </div>
           </DialogContent>
