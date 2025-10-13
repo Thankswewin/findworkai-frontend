@@ -8,29 +8,35 @@ if (!fs.existsSync(screenshotDir)) {
   fs.mkdirSync(screenshotDir, { recursive: true });
 }
 
-// Paddle.com required pages
+// Paddle.com required pages and navigation entry points
 const paddlePages = [
   {
+    name: 'Homepage',
+    url: 'http://localhost:3003/',
+    filename: 'homepage.png',
+    description: 'Main landing page with navigation to all Paddle.com pages'
+  },
+  {
     name: 'Pricing',
-    url: 'http://localhost:3002/pricing',
+    url: 'http://localhost:3003/pricing',
     filename: 'pricing-page.png',
     description: 'Pricing page for Paddle.com verification'
   },
   {
     name: 'Terms of Service',
-    url: 'http://localhost:3002/terms',
+    url: 'http://localhost:3003/terms',
     filename: 'terms-page.png',
     description: 'Terms of Service page for Paddle.com verification'
   },
   {
     name: 'Privacy Policy',
-    url: 'http://localhost:3002/privacy',
+    url: 'http://localhost:3003/privacy',
     filename: 'privacy-page.png',
     description: 'Privacy Policy page for Paddle.com verification'
   },
   {
     name: 'Refund Policy',
-    url: 'http://localhost:3002/refund-policy',
+    url: 'http://localhost:3003/refund-policy',
     filename: 'refund-policy-page.png',
     description: 'Refund Policy page for Paddle.com verification'
   }
@@ -108,7 +114,14 @@ async function testPaddlePages() {
         let hasRequiredContent = false;
         let contentCheck = '';
 
-        if (pageInfo.name === 'Pricing') {
+        if (pageInfo.name === 'Homepage') {
+          hasRequiredContent = await page.evaluate(() => {
+            return document.body.textContent.includes('AI-Powered Business Discovery') &&
+                   document.body.textContent.includes('View Pricing') &&
+                   document.body.textContent.includes('Start Free Trial');
+          });
+          contentCheck = 'Contains homepage hero section and CTAs';
+        } else if (pageInfo.name === 'Pricing') {
           hasRequiredContent = await page.evaluate(() => {
             return document.body.textContent.includes('Pricing') &&
                    document.body.textContent.includes('Professional') &&
@@ -250,7 +263,7 @@ async function checkServer() {
     const http = require('http');
     const options = {
       hostname: 'localhost',
-      port: 3002,
+      port: 3003,
       path: '/pricing',
       method: 'GET',
       timeout: 5000
@@ -281,7 +294,7 @@ async function main() {
     const serverRunning = await checkServer();
 
     if (!serverRunning) {
-      console.log('❌ Development server is not running on http://localhost:3002');
+      console.log('❌ Development server is not running on http://localhost:3003');
       console.log('Please start the server with: npm run dev');
       process.exit(1);
     }
