@@ -70,29 +70,42 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    console.log('🔍 ArtifactViewer received artifact:', {
+      id: artifact.id,
+      name: artifact.name,
+      type: artifact.type,
+      contentType: typeof artifact.content,
+      contentLength: typeof artifact.content === 'string' ? artifact.content.length : 'object',
+      contentPreview: typeof artifact.content === 'string' ? artifact.content.substring(0, 100) + '...' : 'object'
+    })
+
     // Format the content based on artifact type
     if (artifact.type === 'website' || artifact.type === 'landing-page' || artifact.type === 'marketing' || artifact.type === 'content') {
       // Check if this is a React component artifact
       if (artifact.content && typeof artifact.content === 'object' && artifact.content.isReactComponent) {
         // For React component artifacts, we'll render them differently
         const reactComponentHtml = generateReactComponentHTML(artifact.content)
+        console.log('📱 Using React component HTML, length:', reactComponentHtml.length)
         setCode(reactComponentHtml)
         setEditedCode(reactComponentHtml)
       } else {
-        const htmlContent = typeof artifact.content === 'string' 
-          ? artifact.content 
+        const htmlContent = typeof artifact.content === 'string'
+          ? artifact.content
           : generateHTMLFromObject(artifact.content)
+        console.log('🌐 Using HTML content, length:', htmlContent.length, 'is string:', typeof artifact.content === 'string')
         setCode(htmlContent)
         setEditedCode(htmlContent)
       }
     } else if (artifact.type === 'email') {
       const emailHTML = generateEmailHTML(artifact.content)
+      console.log('📧 Using email HTML, length:', emailHTML.length)
       setCode(emailHTML)
       setEditedCode(emailHTML)
     } else {
       const formattedContent = typeof artifact.content === 'string'
         ? artifact.content
         : JSON.stringify(artifact.content, null, 2)
+      console.log('📄 Using formatted content, length:', formattedContent.length)
       setCode(formattedContent)
       setEditedCode(formattedContent)
     }
@@ -101,14 +114,39 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
   // Update iframe content when code changes or view mode switches
   useEffect(() => {
     if (iframeRef.current && (artifact.type === 'website' || artifact.type === 'landing-page' || artifact.type === 'email' || artifact.type === 'marketing' || artifact.type === 'content')) {
-      const doc = iframeRef.current.contentDocument
-      if (doc) {
-        doc.open()
-        try {
-          doc.write(isEditing ? editedCode : code)
-        } catch (error) {
-          console.error('Failed to write to iframe:', error)
-          // Fallback: create a simple HTML page
+      const iframe = iframeRef.current
+
+      // Ensure we have content to display
+      const contentToDisplay = isEditing ? editedCode : code
+
+      if (!contentToDisplay || contentToDisplay.trim() === '') {
+        console.warn('No content to display in iframe')
+        return
+      }
+
+      try {
+        // Use srcdoc for better security and reliability
+        iframe.srcdoc = contentToDisplay
+
+        // Fallback method if srcdoc doesn't work
+        iframe.onload = () => {
+          try {
+            const doc = iframe.contentDocument || iframe.contentWindow?.document
+            if (doc && doc.body.children.length === 0) {
+              console.log('Iframe is blank, using fallback content loading')
+              doc.open()
+              doc.write(contentToDisplay)
+              doc.close()
+            }
+          } catch (error) {
+            console.error('Fallback content loading failed:', error)
+          }
+        }
+
+        // Error handling
+        iframe.onerror = (error) => {
+          console.error('Iframe loading error:', error)
+          // Create a simple fallback HTML page
           const fallbackHTML = `
             <!DOCTYPE html>
             <html>
@@ -122,22 +160,47 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
                 <div class="text-center">
                     <h1 class="text-4xl font-bold text-gray-800 mb-4">${artifact.name}</h1>
                     <div class="bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto">
-                        <p class="text-gray-600">Your website has been successfully generated!</p>
-                        <p class="text-sm text-gray-500 mt-4">The website content will appear here shortly.</p>
+                        <p class="text-gray-600">✅ Your website has been successfully generated!</p>
+                        <p class="text-sm text-gray-500 mt-4">If you're seeing this, the content is loading in the background.</p>
+                        <div class="mt-4">
+                            <button onclick="window.location.reload()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                Refresh Page
+                            </button>
+                        </div>
                     </div>
                 </div>
             </body>
             </html>
           `
-          doc.write(fallbackHTML)
+          iframe.srcdoc = fallbackHTML
         }
-        doc.close()
-
-        // Force iframe reload
-        iframeRef.current.src = iframeRef.current.src
+      } catch (error) {
+        console.error('Failed to set iframe content:', error)
+        // Create emergency fallback
+        const emergencyFallback = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Content Loading Error</title>
+          </head>
+          <body style="font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5;">
+              <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 500px; margin: 50px auto;">
+                  <h2 style="color: #e74c3c; margin-bottom: 15px;">Content Loading Issue</h2>
+                  <p style="color: #666; margin-bottom: 20px;">The generated content is available but having trouble displaying.</p>
+                  <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; text-align: left;">
+                      <h3 style="margin-top: 0;">Content Preview:</h3>
+                      <pre style="background: #fff; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; max-height: 200px; overflow-y: auto;">${contentToDisplay.substring(0, 500)}${contentToDisplay.length > 500 ? '...' : ''}</pre>
+                  </div>
+              </div>
+          </body>
+          </html>
+        `
+        iframe.srcdoc = emergencyFallback
       }
     }
-  }, [code, editedCode, isEditing, artifact.type, viewMode])
+  }, [code, editedCode, isEditing, artifact.type])
 
   const generateHTMLFromObject = (content: any): string => {
     // If content is already HTML string, return it
@@ -753,7 +816,8 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
                   ref={iframeRef}
                   className="w-full h-full border-0 bg-white"
                   title="Preview"
-                  sandbox="allow-scripts allow-same-origin"
+                  sandbox="allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-presentation"
+                  loading="eager"
                 />
               </AnimatedIPhoneFrame>
             ) : (
@@ -770,7 +834,8 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
                   ref={iframeRef}
                   className="w-full h-full border-0"
                   title="Preview"
-                  sandbox="allow-scripts allow-same-origin"
+                  sandbox="allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-presentation"
+                  loading="eager"
                 />
               </div>
             )}
