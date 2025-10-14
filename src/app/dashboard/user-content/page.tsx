@@ -24,6 +24,17 @@ import Link from 'next/link'
 export default function UserContentPage() {
   const [activeTab, setActiveTab] = useState('content')
 
+  // Get authenticated user ID - for now we'll check localStorage,
+  // in a real app this would come from an auth context
+  const getUserId = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('findworkai_user_id') || 'guest'
+    }
+    return 'guest'
+  }
+
+  const userId = getUserId()
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -118,7 +129,7 @@ export default function UserContentPage() {
         </div>
 
         {/* User Content History */}
-        <UserContentHistory />
+        <UserContentHistory userId={userId} />
       </main>
     </div>
   )
