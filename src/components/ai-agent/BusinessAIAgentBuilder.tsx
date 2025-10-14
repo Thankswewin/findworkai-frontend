@@ -221,11 +221,11 @@ export function BusinessAIAgentBuilder({
         
         setCurrentStep('Sending request to AI service...')
         setProgress(20)
-        
+
         // Create AbortController for timeout management
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 900000) // 15 minutes - increased for complex AI generation
-        
+
         // Try fast generation first
         let response = await fetch(`${backendUrl}/mcp-enhanced/generate-fast`, {
           method: 'POST',
@@ -243,6 +243,8 @@ export function BusinessAIAgentBuilder({
         // If fast endpoint fails, try the enhanced endpoint
         if (!response.ok) {
           console.log('Fast endpoint failed, trying enhanced endpoint...')
+          setCurrentStep('Trying enhanced generation endpoint...')
+          setProgress(30)
           response = await fetch(`${backendUrl}/mcp-enhanced/generate-enhanced`, {
             method: 'POST',
             headers: {
@@ -260,12 +262,12 @@ export function BusinessAIAgentBuilder({
             signal: controller.signal
           })
         }
-        
+
         clearTimeout(timeoutId)
 
-        setProgress(50)
-        setCurrentStep('Waiting for AI to generate content...')
-        
+        setProgress(60)
+        setCurrentStep('AI is generating your website...')
+
         if (!response.ok) {
           let errorMessage = 'AI service temporarily unavailable'
           try {
@@ -276,7 +278,7 @@ export function BusinessAIAgentBuilder({
           } catch (e) {
             // If we can't parse the error, use default message
           }
-          
+
           // More helpful error message for 500 errors
           if (response.status === 500) {
             errorMessage = 'The backend AI service is currently unavailable. This might be because:\n' +
@@ -285,19 +287,23 @@ export function BusinessAIAgentBuilder({
                           '3. The AI service rate limit has been reached\n\n' +
                           'Please try again in a moment or contact support.'
           }
-          
+
           throw new Error(errorMessage)
         }
 
         setProgress(80)
         setCurrentStep('Processing AI response...')
-        
+
         const data = await response.json()
         const aiContent = data.final_output || data.output || data.response || ''
-        
+
         console.log('✅ Received REAL AI response!')
         setProgress(100)
-        
+        setCurrentStep('✅ Website Generated Successfully!')
+
+        // Wait a moment for the UI to update before setting the artifact
+        await new Promise(resolve => setTimeout(resolve, 500))
+
         artifact = {
           id: Date.now().toString(),
           name: `${business.name} - ${config.name} Output`,
@@ -320,21 +326,22 @@ export function BusinessAIAgentBuilder({
         throw new Error(`Failed to generate ${agentType}: ${error.message}`)
       }
       
+      // Set the generated artifact first
       setGeneratedArtifact(artifact)
-      setCurrentStep('Complete! Your premium solution is ready.')
-      
+      setCurrentStep('✅ Complete! Your website is ready to view.')
+
       // Save to store for persistence
       saveArtifact(artifact, business)
 
       // Also save to user content history
       addArtifact(business.id, artifact)
-      
+
       toast.success(`${config.name} completed successfully!`)
-      
-      // Auto-open the canvas viewer
+
+      // Auto-open the canvas viewer after a short delay
       setTimeout(() => {
         setShowViewer(true)
-      }, 500)
+      }, 1000)
 
     } catch (error: any) {
       console.error('Generation error:', error)
@@ -1562,26 +1569,26 @@ export function BusinessAIAgentBuilder({
 
             {/* Completion */}
             {generatedArtifact && !isBuilding && (
-              <Card className="border-green-200 bg-green-50">
+              <Card className="border-green-200 bg-green-50 animate-in slide-in-from-bottom-5 duration-500">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 bg-green-600 rounded-lg">
+                    <div className="p-2 bg-green-600 rounded-lg animate-pulse">
                       <Sparkles className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-green-800">Solution Generated!</h4>
-                      <p className="text-sm text-green-700">Your custom {agentType} solution is ready</p>
+                      <h4 className="font-semibold text-green-800">✅ Website Generated Successfully!</h4>
+                      <p className="text-sm text-green-700">Your custom {agentType} is ready to view and download</p>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button 
+                    <Button
                       onClick={() => setShowViewer(true)}
-                      className="flex-1"
+                      className="flex-1 bg-green-600 hover:bg-green-700"
                     >
                       <Eye className="w-4 h-4 mr-2" />
-                      View in Canvas
+                      View Results
                     </Button>
-                    <Button 
+                    <Button
                       variant="outline"
                       onClick={handleDirectDownload}
                     >
