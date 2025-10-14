@@ -85,11 +85,31 @@ export class EnhancedGenerationService {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${this.baseUrl}/api/v1/mcp-enhanced/generate-enhanced`, {
+    // Try fast generation first
+    let response = await fetch(`${this.baseUrl}/api/v1/mcp-enhanced/generate-fast`, {
       method: 'POST',
       headers,
-      body: JSON.stringify(defaultRequest)
+      body: JSON.stringify({
+        business_info: request.business_info,
+        framework: request.framework || 'html',
+        style_preference: request.style_preference || 'modern'
+      })
     });
+
+    // If fast endpoint fails, try enhanced endpoint
+    if (!response.ok) {
+      response = await fetch(`${this.baseUrl}/api/v1/mcp-enhanced/generate-enhanced`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          ...defaultRequest,
+          enable_mcp: false, // Disable for speed
+          enable_self_reflection: false, // Disable for speed
+          enable_self_correction: false, // Disable for speed
+          max_iterations: 1
+        })
+      });
+    }
 
     if (!response.ok) {
       const error = await response.json();

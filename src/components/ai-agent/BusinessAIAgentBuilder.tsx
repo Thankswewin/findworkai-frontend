@@ -226,22 +226,40 @@ export function BusinessAIAgentBuilder({
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 900000) // 15 minutes - increased for complex AI generation
         
-        const response = await fetch(`${backendUrl}/mcp-enhanced/generate-enhanced`, {
+        // Try fast generation first
+        let response = await fetch(`${backendUrl}/mcp-enhanced/generate-fast`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             business_info: businessInfo,
-            enable_mcp: true,
-            enable_self_reflection: true,
-            enable_self_correction: true,
-            max_iterations: 1,
             framework: 'html',
             style_preference: 'modern'
           }),
           signal: controller.signal
         })
+
+        // If fast endpoint fails, try the enhanced endpoint
+        if (!response.ok) {
+          console.log('Fast endpoint failed, trying enhanced endpoint...')
+          response = await fetch(`${backendUrl}/mcp-enhanced/generate-enhanced`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              business_info: businessInfo,
+              enable_mcp: false, // Disable MCP for speed
+              enable_self_reflection: false, // Disable for speed
+              enable_self_correction: false, // Disable for speed
+              max_iterations: 1,
+              framework: 'html',
+              style_preference: 'modern'
+            }),
+            signal: controller.signal
+          })
+        }
         
         clearTimeout(timeoutId)
 
