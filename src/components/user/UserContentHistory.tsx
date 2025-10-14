@@ -620,12 +620,13 @@ export function UserContentHistory({ userId }: UserContentHistoryProps) {
 }
 
 // Export hook to use in other components
-export const useUserContentHistory = () => {
+export const useUserContentHistory = (userId?: string) => {
   const addArtifact = (businessId: string, artifact: GeneratedArtifact) => {
     // This will be called from the AI agent builder to save artifacts
     try {
-      const userId = 'current_user' // Get from auth context
-      const storedProjects = localStorage.getItem(`findworkai_user_projects_${userId}`)
+      // Use same logic as the component - default to guest if no userId provided
+      const effectiveUserId = userId || 'guest'
+      const storedProjects = localStorage.getItem(`findworkai_user_projects_${effectiveUserId}`)
       let projects = storedProjects ? JSON.parse(storedProjects) : []
 
       let project = projects.find((p: any) => p.businessId === businessId)
@@ -653,7 +654,9 @@ export const useUserContentHistory = () => {
         project.tags.push(artifact.type)
       }
 
-      localStorage.setItem(`findworkai_user_projects_${userId}`, JSON.stringify(projects))
+      localStorage.setItem(`findworkai_user_projects_${effectiveUserId}`, JSON.stringify(projects))
+      console.log(`✅ Artifact saved to localStorage key: findworkai_user_projects_${effectiveUserId}`)
+      console.log('Saved artifact:', { businessId, artifactName: artifact.name, artifactType: artifact.type })
     } catch (error) {
       console.error('Error saving artifact:', error)
     }

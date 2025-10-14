@@ -124,7 +124,7 @@ export function BusinessAIAgentBuilder({
   
   // Use artifact store for persistence
   const { saveArtifact, updateArtifact } = useArtifactStore()
-  const { addArtifact } = useUserContentHistory()
+  const { addArtifact } = useUserContentHistory('guest')
 
   const config = agentConfigs[agentType]
   const Icon = config.icon

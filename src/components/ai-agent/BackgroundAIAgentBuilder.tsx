@@ -101,7 +101,7 @@ export function BackgroundAIAgentBuilder({
   const [selectedArtifact, setSelectedArtifact] = useState<GeneratedArtifact | null>(null)
   const [allowBackground, setAllowBackground] = useState(true)
 
-  const { addArtifact } = useUserContentHistory()
+  const { addArtifact } = useUserContentHistory('guest')
   const abortControllerRef = useRef<AbortController | null>(null)
   const buildingRef = useRef(false)
 
