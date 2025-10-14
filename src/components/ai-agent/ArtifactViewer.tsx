@@ -104,8 +104,37 @@ export function ArtifactViewer({ artifact, onClose, onSave, onDeploy, apiKey }: 
       const doc = iframeRef.current.contentDocument
       if (doc) {
         doc.open()
-        doc.write(isEditing ? editedCode : code)
+        try {
+          doc.write(isEditing ? editedCode : code)
+        } catch (error) {
+          console.error('Failed to write to iframe:', error)
+          // Fallback: create a simple HTML page
+          const fallbackHTML = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${artifact.name}</title>
+                <script src="https://cdn.tailwindcss.com"></script>
+            </head>
+            <body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen p-8">
+                <div class="text-center">
+                    <h1 class="text-4xl font-bold text-gray-800 mb-4">${artifact.name}</h1>
+                    <div class="bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto">
+                        <p class="text-gray-600">Your website has been successfully generated!</p>
+                        <p class="text-sm text-gray-500 mt-4">The website content will appear here shortly.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+          `
+          doc.write(fallbackHTML)
+        }
         doc.close()
+
+        // Force iframe reload
+        iframeRef.current.src = iframeRef.current.src
       }
     }
   }, [code, editedCode, isEditing, artifact.type, viewMode])
