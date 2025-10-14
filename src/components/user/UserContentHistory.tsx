@@ -20,7 +20,10 @@ import {
   History,
   Folder,
   Tag,
-  Star
+  Star,
+  AlertCircle,
+  CheckCircle,
+  Loader2
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -77,6 +80,13 @@ export function UserContentHistory({ userId }: UserContentHistoryProps) {
   // Load user's content history from localStorage
   useEffect(() => {
     loadUserProjects()
+
+    // Auto-refresh every 3 seconds to check for completed processing artifacts
+    const interval = setInterval(() => {
+      loadUserProjects()
+    }, 3000)
+
+    return () => clearInterval(interval)
   }, [])
 
   const loadUserProjects = () => {
@@ -233,20 +243,28 @@ export function UserContentHistory({ userId }: UserContentHistoryProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Your Projects</h2>
-          <p className="text-gray-600">All your generated content in one place</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => loadUserProjects()}
-          >
-            <History className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold mb-2">Your Projects</h2>
+            <p className="text-white/90">
+              🚀 Search for businesses above and click "Build Website", "Content", or "Marketing" to start generating!
+            </p>
+            <p className="text-white/75 text-sm mt-1">
+              Generated content will appear here automatically with live progress tracking.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => loadUserProjects()}
+              className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+            >
+              <History className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -442,75 +460,189 @@ export function UserContentHistory({ userId }: UserContentHistoryProps) {
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {project.artifacts.map((artifact) => {
                           const Icon = getArtifactIcon(artifact.type)
+                          const isProcessing = artifact.metadata?.isProcessing
+                          const hasError = artifact.metadata?.hasError
+                          const isTemplate = artifact.metadata?.isTemplate
+
                           return (
                             <div
                               key={artifact.id}
-                              className={`border rounded-lg p-4 hover:shadow-sm transition-shadow cursor-pointer ${getArtifactTypeColor(artifact.type)}`}
+                              className={`border rounded-lg p-4 hover:shadow-sm transition-all cursor-pointer ${
+                                isProcessing
+                                  ? 'bg-blue-50 border-blue-200 animate-pulse'
+                                  : hasError
+                                  ? 'bg-red-50 border-red-200'
+                                  : isTemplate
+                                  ? 'bg-yellow-50 border-yellow-200'
+                                  : getArtifactTypeColor(artifact.type)
+                              }`}
                               onClick={() => {
-                                setSelectedArtifact(artifact)
-                                setShowArtifactViewer(true)
+                                if (!isProcessing) {
+                                  setSelectedArtifact(artifact)
+                                  setShowArtifactViewer(true)
+                                }
                               }}
                             >
                               <div className="flex items-start justify-between mb-2">
                                 <div className="flex items-center gap-2">
-                                  <Icon className="h-4 w-4" />
-                                  <span className="font-medium text-sm capitalize">{artifact.type}</span>
+                                  <div className={`p-1 rounded ${
+                                    isProcessing
+                                      ? 'bg-blue-100'
+                                      : hasError
+                                      ? 'bg-red-100'
+                                      : isTemplate
+                                      ? 'bg-yellow-100'
+                                      : 'bg-white'
+                                  }`}>
+                                    {isProcessing ? (
+                                      <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+                                    ) : hasError ? (
+                                      <AlertCircle className="h-4 w-4 text-red-600" />
+                                    ) : isTemplate ? (
+                                      <Tag className="h-4 w-4 text-yellow-600" />
+                                    ) : (
+                                      <Icon className="h-4 w-4" />
+                                    )}
+                                  </div>
+                                  <span className="font-medium text-sm capitalize">
+                                    {artifact.type}
+                                    {isProcessing && ' (Generating...)'}
+                                    {hasError && ' (Failed)'}
+                                    {isTemplate && ' (Template)'}
+                                  </span>
                                 </div>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                      <MoreVertical className="h-3 w-3" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent>
-                                    <DropdownMenuItem onClick={(e) => {
-                                      e.stopPropagation()
-                                      setSelectedArtifact(artifact)
-                                      setShowArtifactViewer(true)
-                                    }}>
-                                      <Eye className="h-4 w-4 mr-2" />
-                                      View
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={(e) => {
-                                      e.stopPropagation()
-                                      // Download functionality
-                                      const content = typeof artifact.content === 'string'
-                                        ? artifact.content
-                                        : JSON.stringify(artifact.content, null, 2)
-                                      const blob = new Blob([content], { type: 'text/html' })
-                                      const url = URL.createObjectURL(blob)
-                                      const a = document.createElement('a')
-                                      a.href = url
-                                      a.download = `${artifact.name.replace(/\s+/g, '_')}.html`
-                                      document.body.appendChild(a)
-                                      a.click()
-                                      document.body.removeChild(a)
-                                      URL.revokeObjectURL(url)
-                                      toast.success('Downloaded successfully!')
-                                    }}>
-                                      <Download className="h-4 w-4 mr-2" />
-                                      Download
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                      onClick={(e) => {
+
+                                {!isProcessing && (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                        <MoreVertical className="h-3 w-3" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                      <DropdownMenuItem onClick={(e) => {
                                         e.stopPropagation()
-                                        deleteArtifact(project.id, artifact.id)
-                                      }}
-                                      className="text-red-600"
-                                    >
-                                      <Trash2 className="h-4 w-4 mr-2" />
-                                      Delete
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
+                                        setSelectedArtifact(artifact)
+                                        setShowArtifactViewer(true)
+                                      }}>
+                                        <Eye className="h-4 w-4 mr-2" />
+                                        View
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={(e) => {
+                                        e.stopPropagation()
+                                        // Download functionality
+                                        const content = typeof artifact.content === 'string'
+                                          ? artifact.content
+                                          : JSON.stringify(artifact.content, null, 2)
+                                        const blob = new Blob([content], { type: 'text/html' })
+                                        const url = URL.createObjectURL(blob)
+                                        const a = document.createElement('a')
+                                        a.href = url
+                                        a.download = `${artifact.name.replace(/\s+/g, '_')}.html`
+                                        document.body.appendChild(a)
+                                        a.click()
+                                        document.body.removeChild(a)
+                                        URL.revokeObjectURL(url)
+                                        toast.success('Downloaded successfully!')
+                                      }}>
+                                        <Download className="h-4 w-4 mr-2" />
+                                        Download
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          deleteArtifact(project.id, artifact.id)
+                                        }}
+                                        className="text-red-600"
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Delete
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                )}
                               </div>
-                              <div className="text-sm">
-                                <p className="font-medium mb-1">{artifact.name}</p>
-                                <p className="text-xs opacity-75">
-                                  {formatDate(artifact.generatedAt)}
-                                </p>
-                              </div>
+
+                              {/* Processing State UI */}
+                              {isProcessing && (
+                                <div className="space-y-3">
+                                  <div className="bg-white rounded-lg p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-xs font-medium text-blue-700">Generating {artifact.type}...</span>
+                                      <span className="text-xs text-blue-600">
+                                        {formatDate(artifact.generatedAt)}
+                                      </span>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                                        <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                                          <div className="bg-blue-500 h-1.5 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                                        </div>
+                                      </div>
+                                      <div className="text-xs text-gray-600 space-y-1">
+                                        <p>📋 Preparing business data...</p>
+                                        <p>🤖 Calling AI service...</p>
+                                        <p>⚡ Generating content...</p>
+                                        <p>✨ Finalizing result...</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="bg-blue-100 rounded-lg p-2 text-center">
+                                    <p className="text-xs text-blue-700 flex items-center justify-center gap-1">
+                                      <Zap className="h-3 w-3" />
+                                      AI is working magic...
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Error State UI */}
+                              {hasError && (
+                                <div className="space-y-2">
+                                  <div className="bg-white rounded-lg p-3">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <AlertCircle className="h-4 w-4 text-red-600" />
+                                      <span className="text-sm font-medium text-red-700">Generation Failed</span>
+                                    </div>
+                                    <p className="text-xs text-gray-600">
+                                      The AI service encountered an issue. Click to view the error page or try again.
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Template State UI */}
+                              {isTemplate && (
+                                <div className="space-y-2">
+                                  <div className="bg-white rounded-lg p-3">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <Tag className="h-4 w-4 text-yellow-600" />
+                                      <span className="text-sm font-medium text-yellow-700">Template Generated</span>
+                                    </div>
+                                    <p className="text-xs text-gray-600">
+                                      AI service was unavailable, so we created a professional template instead.
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Normal State UI */}
+                              {!isProcessing && !hasError && !isTemplate && (
+                                <div className="text-sm">
+                                  <p className="font-medium mb-1">{artifact.name}</p>
+                                  <p className="text-xs opacity-75">
+                                    {formatDate(artifact.generatedAt)}
+                                  </p>
+                                  {artifact.metadata?.generatedByAI && (
+                                    <div className="flex items-center gap-1 mt-1">
+                                      <CheckCircle className="h-3 w-3 text-green-600" />
+                                      <span className="text-xs text-green-600">AI Generated</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           )
                         })}
