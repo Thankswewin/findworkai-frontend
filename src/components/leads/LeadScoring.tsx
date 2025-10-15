@@ -17,11 +17,17 @@ interface ScoredLead {
   reasons: string[]
   priority: 'high' | 'medium' | 'low'
   recommended_service: string
+  all_recommended_services?: string[]
   estimated_value: number
   contact_info: {
     phone?: string
     website?: string
     address?: string
+  }
+  ai_analysis?: {
+    weaknesses_count: number
+    opportunities_count: number
+    confidence: number
   }
 }
 
@@ -34,7 +40,14 @@ export default function LeadScoring() {
     total_scored: 0,
     high_priority: 0,
     medium_priority: 0,
-    low_priority: 0
+    low_priority: 0,
+    average_score: 0,
+    scoring_method: 'basic',
+    ai_analysis_summary: {
+      total_weaknesses_found: 0,
+      total_opportunities_identified: 0,
+      average_confidence: 0
+    }
   })
 
   // Scoring criteria
@@ -55,7 +68,14 @@ export default function LeadScoring() {
         total_scored: response.total_scored,
         high_priority: response.high_priority,
         medium_priority: response.medium_priority,
-        low_priority: response.low_priority
+        low_priority: response.low_priority,
+        average_score: response.average_score || 0,
+        scoring_method: response.scoring_method || 'ai_enhanced',
+        ai_analysis_summary: response.ai_analysis_summary || {
+          total_weaknesses_found: 0,
+          total_opportunities_identified: 0,
+          average_confidence: 0
+        }
       })
       setTotalValue(response.total_estimated_value)
       toast.success(`Scored ${response.total_scored} leads successfully!`)
@@ -91,6 +111,28 @@ export default function LeadScoring() {
     }
   }
 
+  const triggerRealTimeScoring = async (businessId: string) => {
+    try {
+      const response = await apiService.post(`/lead-scoring/real-time-score/${businessId}`)
+      if (response.success) {
+        toast.success(response.message)
+      } else {
+        toast.error(response.message)
+      }
+    } catch (error) {
+      toast.error('Failed to trigger real-time scoring')
+    }
+  }
+
+  const scoreRecentBusinesses = async () => {
+    try {
+      const response = await apiService.post('/lead-scoring/score-recent', { hours_back: 24 })
+      toast.success(`Scored ${response.businesses_scored} recent businesses`)
+    } catch (error) {
+      toast.error('Failed to score recent businesses')
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -99,7 +141,7 @@ export default function LeadScoring() {
           <h2 className="text-2xl font-bold text-gray-900">Lead Scoring & Prioritization</h2>
           <p className="text-gray-600">AI-powered lead scoring to identify your best opportunities</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -108,6 +150,16 @@ export default function LeadScoring() {
           >
             <Filter className="h-4 w-4" />
             Filters
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={scoreRecentBusinesses}
+            disabled={loading}
+            className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+          >
+            <Target className="h-4 w-4" />
+            Score Recent
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -130,13 +182,13 @@ export default function LeadScoring() {
             ) : (
               <Zap className="h-5 w-5" />
             )}
-            Score Leads
+            AI Enhanced Score
           </motion.button>
         </div>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <motion.div
           whileHover={{ scale: 1.02 }}
           className="bg-white rounded-xl p-6 shadow-lg border border-gray-100"
@@ -191,6 +243,19 @@ export default function LeadScoring() {
 
         <motion.div
           whileHover={{ scale: 1.02 }}
+          className="bg-white rounded-xl p-6 shadow-lg border border-gray-100"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Avg Score</p>
+              <p className="text-2xl font-bold text-purple-600">{statistics.average_score.toFixed(1)}</p>
+            </div>
+            <Trophy className="h-8 w-8 text-purple-600" />
+          </div>
+        </motion.div>
+
+        <motion.div
+          whileHover={{ scale: 1.02 }}
           className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl p-6 shadow-lg"
         >
           <div className="flex items-center justify-between">
@@ -202,6 +267,40 @@ export default function LeadScoring() {
           </div>
         </motion.div>
       </div>
+
+      {/* AI Analysis Summary */}
+      {statistics.scoring_method === 'ai_enhanced' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-100"
+        >
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Zap className="h-5 w-5 text-indigo-600" />
+            AI Analysis Summary
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white rounded-lg p-4 border border-indigo-100">
+              <p className="text-sm text-gray-600">Weaknesses Found</p>
+              <p className="text-xl font-bold text-indigo-600">
+                {statistics.ai_analysis_summary.total_weaknesses_found}
+              </p>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-indigo-100">
+              <p className="text-sm text-gray-600">Opportunities Identified</p>
+              <p className="text-xl font-bold text-purple-600">
+                {statistics.ai_analysis_summary.total_opportunities_identified}
+              </p>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-indigo-100">
+              <p className="text-sm text-gray-600">AI Confidence</p>
+              <p className="text-xl font-bold text-green-600">
+                {(statistics.ai_analysis_summary.average_confidence * 100).toFixed(1)}%
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Filters Panel */}
       {showFilters && (
@@ -314,14 +413,28 @@ export default function LeadScoring() {
                       )}
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-gray-700">Recommended Service:</span>
                         <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-sm">
-                          {lead.recommended_service}
+                          {lead.recommended_service.replace('_', ' ')}
                         </span>
                       </div>
-                      
+
+                      {/* Additional recommended services */}
+                      {lead.all_recommended_services && lead.all_recommended_services.length > 1 && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-700">Also consider:</span>
+                          <div className="flex flex-wrap gap-1">
+                            {lead.all_recommended_services.slice(1).map((service, index) => (
+                              <span key={index} className="px-2 py-1 bg-gray-50 text-gray-600 rounded text-xs">
+                                {service.replace('_', ' ')}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="flex flex-wrap gap-2">
                         {lead.reasons.map((reason, index) => (
                           <span key={index} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
@@ -329,19 +442,42 @@ export default function LeadScoring() {
                           </span>
                         ))}
                       </div>
+
+                      {/* AI Analysis Confidence */}
+                      {lead.ai_analysis && (
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <Zap className="h-3 w-3" />
+                          <span>AI Confidence: {(lead.ai_analysis.confidence * 100).toFixed(1)}%</span>
+                          <span>•</span>
+                          <span>{lead.ai_analysis.weaknesses_count} weaknesses</span>
+                          <span>•</span>
+                          <span>{lead.ai_analysis.opportunities_count} opportunities</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   
                   <div className="text-right ml-6">
                     <p className="text-sm text-gray-600">Est. Value</p>
                     <p className="text-xl font-bold text-green-600">${lead.estimated_value.toLocaleString()}</p>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-                    >
-                      Contact Lead
-                    </motion.button>
+                    <div className="mt-3 space-y-2">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => triggerRealTimeScoring(lead.business_id)}
+                        className="w-full px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 flex items-center justify-center gap-2"
+                      >
+                        <Zap className="h-3 w-3" />
+                        Re-Score
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="w-full px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                      >
+                        Contact Lead
+                      </motion.button>
+                    </div>
                   </div>
                 </div>
               </motion.div>

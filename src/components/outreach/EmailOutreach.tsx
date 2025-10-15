@@ -22,17 +22,23 @@ import toast from 'react-hot-toast'
 import apiService from '@/services/api'
 
 interface EmailTemplate {
-  id: string
+  id: number
   name: string
   subject: string
   body: string
-  tone: string
   service_type: string
+  category?: string
+  description?: string
+  tags?: string[]
+  is_active: boolean
   performance?: {
+    total_sent: number
+    opens: number
+    clicks: number
     open_rate: number
-    reply_rate: number
-    uses: number
+    click_rate: number
   }
+  usage_count?: number
 }
 
 interface GeneratedEmail {
@@ -103,12 +109,12 @@ export function EmailOutreach() {
 
   const loadTemplates = async () => {
     try {
-      const data = await apiService.getEmailTemplates()
-      // Ensure data is an array before setting
-      if (Array.isArray(data)) {
-        setTemplates(data)
+      const data = await apiService.getTemplates()
+      // Ensure we get the templates array from the response
+      if (data && data.templates && Array.isArray(data.templates)) {
+        setTemplates(data.templates)
       } else {
-        console.warn('Templates response is not an array:', data)
+        console.warn('Templates response is not in expected format:', data)
         setTemplates([])
       }
     } catch (error) {
@@ -118,14 +124,32 @@ export function EmailOutreach() {
     }
   }
 
-  const loadStats = () => {
-    // Simulate stats - in production, this would come from the API
-    setStats({
-      totalGenerated: 156,
-      totalSent: 89,
-      avgOpenRate: 42.3,
-      avgReplyRate: 8.7
-    })
+  const loadStats = async () => {
+    try {
+      const statsData = await apiService.getEmailStats()
+      if (statsData.success) {
+        const emailStats = statsData.email_stats
+        const userStats = statsData.user_stats
+
+        setStats({
+          totalGenerated: userStats.total_generated,
+          totalSent: userStats.total_sent,
+          avgOpenRate: emailStats.total_sent > 0 ?
+            (emailStats.total_opened / emailStats.total_sent * 100).toFixed(1) : 0,
+          avgReplyRate: emailStats.total_sent > 0 ?
+            (emailStats.total_replied / emailStats.total_sent * 100).toFixed(1) : 0
+        })
+      }
+    } catch (error) {
+      console.error('Failed to load email stats:', error)
+      // Set default stats on error
+      setStats({
+        totalGenerated: 0,
+        totalSent: 0,
+        avgOpenRate: 0,
+        avgReplyRate: 0
+      })
+    }
   }
 
   const handleSelectBusiness = (business: any) => {
@@ -231,19 +255,37 @@ export function EmailOutreach() {
     }
 
     setIsSending(true)
-    
+
     try {
-      // In production, this would actually send emails
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      setStats(prev => ({ ...prev, totalSent: prev.totalSent + generatedEmails.size }))
-      toast.success(`Successfully sent ${generatedEmails.size} emails!`)
-      
-      // Clear sent emails
-      setGeneratedEmails(new Map())
-      setSelectedBusinesses([])
-    } catch (error) {
-      toast.error('Failed to send emails')
+      // Prepare emails for batch sending
+      const emailsToSend = Array.from(generatedEmails.entries()).map(([businessId, email]) => {
+        const business = businesses.find(b => b.id === businessId)
+        return {
+          business_id: businessId,
+          recipient_email: business?.email || 'contact@example.com', // Fallback email
+          subject: email.subject,
+          body: email.body
+        }
+      })
+
+      // Send batch emails
+      const result = await apiService.sendBatchEmails(emailsToSend)
+
+      if (result.success) {
+        setStats(prev => ({
+          ...prev,
+          totalSent: prev.totalSent + result.sent
+        }))
+        toast.success(`Successfully sent ${result.sent} emails!${result.failed > 0 ? ` (${result.failed} failed)` : ''}`)
+
+        // Clear sent emails
+        setGeneratedEmails(new Map())
+        setSelectedBusinesses([])
+      } else {
+        toast.error('Failed to send emails')
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to send emails')
     } finally {
       setIsSending(false)
     }
@@ -253,6 +295,39 @@ export function EmailOutreach() {
     const fullEmail = `Subject: ${email.subject}\n\n${email.body}`
     navigator.clipboard.writeText(fullEmail)
     toast.success('Email copied to clipboard!')
+  }
+
+  const handleSendSingleEmail = async (businessId: string) => {
+    const business = businesses.find(b => b.id === businessId)
+    const email = generatedEmails.get(businessId)
+
+    if (!business || !email) {
+      toast.error('Business or email not found')
+      return
+    }
+
+    try {
+      const result = await apiService.sendEmail(
+        businessId,
+        business.email || 'contact@example.com',
+        email.subject,
+        email.body
+      )
+
+      if (result.success) {
+        toast.success(`Email sent to ${business.name}!`)
+        // Remove from generated emails
+        const newEmails = new Map(generatedEmails)
+        newEmails.delete(businessId)
+        setGeneratedEmails(newEmails)
+        // Update stats
+        setStats(prev => ({ ...prev, totalSent: prev.totalSent + 1 }))
+      } else {
+        toast.error('Failed to send email')
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to send email')
+    }
   }
 
   return (
@@ -374,7 +449,7 @@ export function EmailOutreach() {
                     <SelectContent>
                       <SelectItem value="none">No template</SelectItem>
                       {Array.isArray(templates) && templates.map(template => (
-                        <SelectItem key={template.id} value={template.id}>
+                        <SelectItem key={template.id} value={template.id.toString()}>
                           {template.name}
                         </SelectItem>
                       ))}
@@ -524,6 +599,13 @@ export function EmailOutreach() {
                             onClick={() => handlePreviewEmail(businessId)}
                           >
                             <Mail className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleSendSingleEmail(businessId)}
+                          >
+                            <Send className="h-4 w-4" />
                           </Button>
                           <Button
                             size="sm"

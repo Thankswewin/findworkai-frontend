@@ -143,8 +143,8 @@ export function BusinessCategoryExplorer(props: BusinessCategoryExplorerProps) {
       
       if (!subcategory) return
 
-      // Try to call backend API first
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+      // Try to call backend API first - Use same URL as dashboard
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend-1.onrender.com/api/v1'
       
       try {
         const response = await fetch(`${apiUrl}/categories/search`, {
@@ -193,11 +193,90 @@ export function BusinessCategoryExplorer(props: BusinessCategoryExplorerProps) {
         }
       } catch (apiError) {
         console.warn('Backend API unavailable, using demo data:', apiError)
-      }
 
-      // If backend is unavailable, show error instead of demo data
-      setError('Unable to connect to the server. Please try again later.')
-      toast.error('Connection failed. Please check your internet connection.')
+        // Fallback to demo data when API fails
+        const demoBusinesses: Business[] = [
+          {
+            id: 'demo_1',
+            name: 'The Garden Bistro',
+            address: '123 Main St, New York, NY',
+            rating: 4.5,
+            totalReviews: 128,
+            category: subcategory.name,
+            hasWebsite: false,
+            phone: '+1 (212) 555-0123',
+            photoUrl: 'https://picsum.photos/seed/bistro1/400/300.jpg',
+            opportunityScore: 85,
+          },
+          {
+            id: 'demo_2',
+            name: 'Sushi Paradise',
+            address: '456 Oak Ave, New York, NY',
+            rating: 4.2,
+            totalReviews: 94,
+            category: subcategory.name,
+            hasWebsite: true,
+            website: 'https://sushiparadise.com',
+            phone: '+1 (212) 555-0456',
+            photoUrl: 'https://picsum.photos/seed/sushi2/400/300.jpg',
+            opportunityScore: 45,
+          },
+          {
+            id: 'demo_3',
+            name: 'Pasta House',
+            address: '789 Pine St, New York, NY',
+            rating: 4.7,
+            totalReviews: 203,
+            category: subcategory.name,
+            hasWebsite: false,
+            phone: '+1 (212) 555-0789',
+            photoUrl: 'https://picsum.photos/seed/pasta3/400/300.jpg',
+            opportunityScore: 78,
+          },
+          {
+            id: 'demo_4',
+            name: 'Burger Palace',
+            address: '321 Elm St, New York, NY',
+            rating: 4.1,
+            totalReviews: 156,
+            category: subcategory.name,
+            hasWebsite: true,
+            website: 'https://burgerpalace.com',
+            phone: '+1 (212) 555-0321',
+            photoUrl: 'https://picsum.photos/seed/burger4/400/300.jpg',
+            opportunityScore: 52,
+          },
+          {
+            id: 'demo_5',
+            name: 'Cafe Corner',
+            address: '654 Maple Dr, New York, NY',
+            rating: 4.6,
+            totalReviews: 87,
+            category: subcategory.name,
+            hasWebsite: false,
+            phone: '+1 (212) 555-0654',
+            photoUrl: 'https://picsum.photos/seed/cafe5/400/300.jpg',
+            opportunityScore: 82,
+          },
+          {
+            id: 'demo_6',
+            name: 'Pizza Express',
+            address: '987 Cedar Ln, New York, NY',
+            rating: 4.3,
+            totalReviews: 142,
+            category: subcategory.name,
+            hasWebsite: true,
+            website: 'https://pizzaexpress.com',
+            phone: '+1 (212) 555-0987',
+            photoUrl: 'https://picsum.photos/seed/pizza6/400/300.jpg',
+            opportunityScore: 58,
+          }
+        ]
+
+        setBusinesses(demoBusinesses)
+        toast.success(`Found ${demoBusinesses.length} demo ${subcategory.name.toLowerCase()} (Demo Mode)`)
+        return
+      }
       
     } catch (err) {
       console.error('Error fetching businesses:', err)
@@ -212,7 +291,7 @@ export function BusinessCategoryExplorer(props: BusinessCategoryExplorerProps) {
   // Analyze business photos in background (silent, no loading state)
   const analyzeBusinessPhotosInBackground = async (business: Business) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend.onrender.com/api/v1'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://findworkai-backend-1.onrender.com/api/v1'
       const response = await fetch(`${apiUrl}/categories/analyze-photos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

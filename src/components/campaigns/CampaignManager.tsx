@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import apiService from '@/services/api'
 import toast from 'react-hot-toast'
+import CreateCampaignModal from './CreateCampaignModal'
 
 interface Campaign {
   campaign_id: string
@@ -71,6 +72,26 @@ export default function CampaignManager() {
       loadCampaigns()
     } catch (error) {
       toast.error('Failed to pause campaign')
+    }
+  }
+
+  const handleCreateTestCampaign = async () => {
+    try {
+      setLoading(true)
+      const testCampaignData = {
+        name: 'Test Website Design Campaign',
+        description: 'A test campaign for website design services',
+        type: 'email',
+        target_audience: 'Local businesses without websites'
+      }
+
+      const response = await apiService.createCampaign(testCampaignData)
+      toast.success('Test campaign created successfully!')
+      loadCampaigns()
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to create test campaign')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -197,6 +218,31 @@ export default function CampaignManager() {
             <Mail className="h-12 w-12 mx-auto text-gray-400 mb-4" />
             <p className="text-gray-600">No campaigns yet</p>
             <p className="text-sm text-gray-500 mt-2">Create your first campaign to get started</p>
+            <div className="mt-6 flex justify-center gap-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowCreateModal(true)}
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl flex items-center gap-2"
+              >
+                <Plus className="h-5 w-5" />
+                Create Campaign
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleCreateTestCampaign}
+                disabled={loading}
+                className="px-6 py-3 bg-gray-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                {loading ? (
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Zap className="h-5 w-5" />
+                )}
+                Create Test Campaign
+              </motion.button>
+            </div>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -361,6 +407,16 @@ export default function CampaignManager() {
           </motion.div>
         </motion.div>
       )}
+
+      {/* Create Campaign Modal */}
+      <CreateCampaignModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCampaignCreated={() => {
+          setShowCreateModal(false)
+          loadCampaigns()
+        }}
+      />
     </div>
   )
 }

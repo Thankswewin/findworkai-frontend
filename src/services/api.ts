@@ -359,6 +359,188 @@ class ApiService {
     return response.data
   }
 
+  // Real Email Sending
+  async sendEmail(businessId: string, recipientEmail: string, subject: string, body: string,
+                  trackOpens: boolean = true, trackClicks: boolean = true) {
+    const response = await this.client.post('/outreach/send-email', {
+      business_id: businessId,
+      recipient_email: recipientEmail,
+      subject,
+      body,
+      track_opens: trackOpens,
+      track_clicks: trackClicks
+    })
+    return response.data
+  }
+
+  async sendBatchEmails(emails: Array<{business_id: string, recipient_email: string, subject: string, body: string}>,
+                        trackOpens: boolean = true, trackClicks: boolean = true) {
+    const response = await this.client.post('/outreach/send-batch-emails', {
+      emails,
+      track_opens: trackOpens,
+      track_clicks: trackClicks
+    })
+    return response.data
+  }
+
+  async getEmailStats() {
+    const response = await this.client.get('/outreach/email-stats')
+    return response.data
+  }
+
+  async markAsConverted(businessId: string, notes?: string) {
+    const response = await this.client.post(`/outreach/mark-converted/${businessId}`, { notes })
+    return response.data
+  }
+
+  async getFollowUpSuggestions(daysSinceContact: number = 7) {
+    const response = await this.client.get('/outreach/follow-ups', {
+      params: { days_since_contact: daysSinceContact }
+    })
+    return response.data
+  }
+
+  // Email Analytics
+  async getEmailAnalytics(emailId: string) {
+    const response = await this.client.get(`/email/analytics/email/${emailId}`)
+    return response.data
+  }
+
+  async getCampaignAnalytics(campaignId: string) {
+    const response = await this.client.get(`/email/analytics/campaign/${campaignId}`)
+    return response.data
+  }
+
+  async getUserAnalytics(days: number = 30) {
+    const response = await this.client.get('/email/analytics/user', {
+      params: { days }
+    })
+    return response.data
+  }
+
+  async getAnalyticsDashboard() {
+    const response = await this.client.get('/email/analytics/dashboard')
+    return response.data
+  }
+
+  // Email Delivery Monitoring
+  async getDeliveryStats(days: number = 30) {
+    const response = await this.client.get('/email/delivery/stats', {
+      params: { days }
+    })
+    return response.data
+  }
+
+  async getProblematicEmails(days: number = 7, limit: number = 50) {
+    const response = await this.client.get('/email/delivery/problematic', {
+      params: { days, limit }
+    })
+    return response.data
+  }
+
+  async retryFailedEmails(maxRetries: number = 10) {
+    const response = await this.client.post('/email/delivery/retry-failed', null, {
+      params: { max_retries: maxRetries }
+    })
+    return response.data
+  }
+
+  async getSuppressionList() {
+    const response = await this.client.get('/email/delivery/suppression-list')
+    return response.data
+  }
+
+  async addToSuppressionList(emailAddresses: string[], reason: string = 'Manual suppression') {
+    const response = await this.client.post('/email/delivery/suppression-list', {
+      email_addresses: emailAddresses,
+      reason
+    })
+    return response.data
+  }
+
+  async removeFromSuppressionList(emailAddress: string) {
+    const response = await this.client.delete(`/email/delivery/suppression-list/${emailAddress}`)
+    return response.data
+  }
+
+  async getProviderStats() {
+    const response = await this.client.get('/email/delivery/provider-stats')
+    return response.data
+  }
+
+  async processWebhook(provider: string, eventData: any) {
+    const response = await this.client.post(`/email/delivery/webhook/${provider}`, {
+      provider,
+      event_data: eventData
+    })
+    return response.data
+  }
+
+  // Email Templates Management
+  async createTemplate(templateData: {
+    name: string
+    service_type: string
+    subject: string
+    body: string
+    description?: string
+    category?: string
+    tags?: string[]
+  }) {
+    const response = await this.client.post('/email/templates/', templateData)
+    return response.data
+  }
+
+  async getTemplates(params?: {
+    service_type?: string
+    category?: string
+    is_active?: boolean
+    skip?: number
+    limit?: number
+  }) {
+    const response = await this.client.get('/email/templates/', { params })
+    return response.data
+  }
+
+  async getTemplate(templateId: number) {
+    const response = await this.client.get(`/email/templates/${templateId}`)
+    return response.data
+  }
+
+  async updateTemplate(templateId: number, templateData: {
+    name?: string
+    subject?: string
+    body?: string
+    description?: string
+    category?: string
+    tags?: string[]
+    is_active?: boolean
+  }) {
+    const response = await this.client.put(`/email/templates/${templateId}`, templateData)
+    return response.data
+  }
+
+  async deleteTemplate(templateId: number) {
+    const response = await this.client.delete(`/email/templates/${templateId}`)
+    return response.data
+  }
+
+  async getTemplateCategories() {
+    const response = await this.client.get('/email/templates/categories/list')
+    return response.data
+  }
+
+  async getServiceTypes() {
+    const response = await this.client.get('/email/templates/service-types/list')
+    return response.data
+  }
+
+  async cloneTemplate(templateId: number, newName: string) {
+    const response = await this.client.post(`/email/templates/${templateId}/clone`, null, {
+      params: { new_name: newName }
+    })
+    return response.data
+  }
+
   // Analytics
   async getDashboard(): Promise<DashboardMetrics> {
     const response = await this.client.get('/analytics/dashboard')
